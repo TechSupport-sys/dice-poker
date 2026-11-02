@@ -3,7 +3,7 @@
   'use strict';
 
   var I18N = {
-    en:     en: {
+    en: {
       langName: 'English',
       brand: 'Dice Poker',
       setupTitle: 'New game',
@@ -54,8 +54,8 @@
         chance: ['Chance', 'any five dice'],
         pokerBonus: ['Yahtzee bonus', '+100 per extra']
       }
-    },,
-    uk:     uk: {
+    },
+    uk: {
       langName: 'Українська',
       brand: 'Dice Poker',
       setupTitle: 'Нова гра',
@@ -106,8 +106,8 @@
         chance: ['Шанс', 'будь-які 5 кубиків'],
         pokerBonus: ['Бонус Яцзи', '+100 за кожен зайвий']
       }
-    },,
-    ru:     ru: {
+    },
+    ru: {
       langName: 'Русский',
       brand: 'Dice Poker',
       setupTitle: 'Новая игра',
