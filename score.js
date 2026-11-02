@@ -3,7 +3,7 @@
   'use strict';
 
   var I18N = {
-    en: {
+    en:     en: {
       langName: 'English',
       brand: 'Dice Poker',
       setupTitle: 'New game',
@@ -30,28 +30,32 @@
       filled: '{{f}}/{{cat}}',
       rules: [
         '<b>Upper section</b> — enter how many dice of each face (0–5). Score = count × face. 63+ gives a +35 bonus.',
-        '<b>Three of a kind</b> — sum of all five dice.',
-        '<b>Small 4 of a kind</b> — four identical dice; sum of all five dice.',
-        '<b>Full house</b> — 25 points.',
-        '<b>Large 5 of a kind</b> — 50 points. Each additional five-of-a-kind adds +100.',
+        '<b>3 of a kind</b> — three identical dice; score the sum of all five dice.',
+        '<b>4 of a kind</b> — four identical dice; score the sum of all five dice.',
+        '<b>Full house</b> — three of one number and two of another; 25 points.',
+        '<b>Small straight</b> — 4 dice in a row (1-2-3-4, 2-3-4-5 or 3-4-5-6); 30 points.',
+        '<b>Large straight</b> — 5 dice in a row (1-2-3-4-5 or 2-3-4-5-6); 40 points.',
+        '<b>Yahtzee (5 of a kind)</b> — five identical dice; 50 points. Each additional Yahtzee adds +100.',
         '<b>Chance</b> — sum of any five dice.'
       ],
       rows: {
-        ones: ['Ones', '× 1 point'],
-        twos: ['Twos', '× 2 points'],
-        threes: ['Threes', '× 3 points'],
-        fours: ['Fours', '× 4 points'],
-        fives: ['Fives', '× 5 points'],
-        sixes: ['Sixes', '× 6 points'],
-        threeKind: ['Three of a kind', '3 equal · sum of dice'],
-        fourKind: ['Small 4 of a kind', '4 equal · sum of dice'],
+        ones: ['Aces', '× 1'],
+        twos: ['Twos', '× 2'],
+        threes: ['Threes', '× 3'],
+        fours: ['Fours', '× 4'],
+        fives: ['Fives', '× 5'],
+        sixes: ['Sixes', '× 6'],
+        threeKind: ['3 of a kind', '3 equal · sum'],
+        fourKind: ['4 of a kind', '4 equal · sum'],
         fullHouse: ['Full house', '3 + 2 · 25'],
-        poker: ['Large 5 of a kind', '5 equal · 50'],
+        smallStraight: ['Small straight', '4 in a row · 30'],
+        largeStraight: ['Large straight', '5 in a row · 40'],
+        poker: ['Yahtzee', '5 equal · 50'],
         chance: ['Chance', 'any five dice'],
-        pokerBonus: ['Poker bonus', '+100 per extra']
+        pokerBonus: ['Yahtzee bonus', '+100 per extra']
       }
-    },
-    uk: {
+    },,
+    uk:     uk: {
       langName: 'Українська',
       brand: 'Dice Poker',
       setupTitle: 'Нова гра',
@@ -78,28 +82,32 @@
       filled: '{{f}}/{{cat}}',
       rules: [
         '<b>Верхня секція</b> — вноситься кількість кубиків (0–5). Очки = кількість × грань. Сума 63+ дає бонус 35.',
-        '<b>Трійка 3x</b> — сума всіх п’яти кубиків.',
-        '<b>Малий 4x</b> — чотири однакові; сума всіх п’яти кубиків.',
-        '<b>Фулл-хаус</b> — 25 очків.',
-        '<b>Великий 5x</b> — 50 очків. Кожен наступний покер — +100.',
+        '<b>3 в однакових</b> — три однакові кубики; сума всіх п’яти кубиків.',
+        '<b>4 в однакових</b> — чотири однакові кубики; сума всіх п’яти кубиків.',
+        '<b>Фулл-хаус</b> — три одного числа і два іншого; 25 очків.',
+        '<b>Малий стріт</b> — 4 кубика підряд (1-2-3-4, 2-3-4-5 або 3-4-5-6); 30 очків.',
+        '<b>Великий стріт</b> — 5 кубиків підряд (1-2-3-4-5 або 2-3-4-5-6); 40 очків.',
+        '<b>Яцзи (5 в однакових)</b> — п’ять однакових кубиків; 50 очків. Кожен наступний Яцзи — +100.',
         '<b>Шанс</b> — сума будь-яких п’яти кубиків.'
       ],
       rows: {
-        ones: ['Одиниці', '× 1 очко'],
-        twos: ['Двійки', '× 2 очки'],
-        threes: ['Трійки', '× 3 очки'],
-        fours: ['Четвірки', '× 4 очки'],
-        fives: ['П’ятірки', '× 5 очків'],
-        sixes: ['Шістки', '× 6 очків'],
-        threeKind: ['Трійка 3x', '3 однакові · сума кубиків'],
-        fourKind: ['Малий 4x', '4 однакові · сума кубиків'],
+        ones: ['Одиниці', '× 1'],
+        twos: ['Двійки', '× 2'],
+        threes: ['Трійки', '× 3'],
+        fours: ['Четвірки', '× 4'],
+        fives: ['П’ятірки', '× 5'],
+        sixes: ['Шістки', '× 6'],
+        threeKind: ['3 в однакових', '3 однакові · сума'],
+        fourKind: ['4 в однакових', '4 однакові · сума'],
         fullHouse: ['Фулл-хаус', '3 + 2 · 25'],
-        poker: ['Великий 5x', '5 однакових · 50'],
+        smallStraight: ['Малий стріт', '4 підряд · 30'],
+        largeStraight: ['Великий стріт', '5 підряд · 40'],
+        poker: ['Яцзи', '5 однакових · 50'],
         chance: ['Шанс', 'будь-які 5 кубиків'],
-        pokerBonus: ['Бонус покер', '+100 за кожен зайвий']
+        pokerBonus: ['Бонус Яцзи', '+100 за кожен зайвий']
       }
-    },
-    ru: {
+    },,
+    ru:     ru: {
       langName: 'Русский',
       brand: 'Dice Poker',
       setupTitle: 'Новая игра',
@@ -126,25 +134,29 @@
       filled: '{{f}}/{{cat}}',
       rules: [
         '<b>Верхняя секция</b> — вносится количество кубиков (0–5), очки = количество × грань. Сумма 63+ даёт бонус 35.',
-        '<b>Тройка 3x</b> — три одинаковых; пишется сумма всех пяти кубиков.',
-        '<b>Малый 4x</b> — четыре одинаковых; пишется сумма всех пяти кубиков.',
-        '<b>Фулл-хаус</b> — три + два; 25 очков.',
-        '<b>Большой 5x</b> — все пять кубиков одинаковые; 50 очков. Каждый следующий покер — бонус +100.',
+        '<b>3 одинаковых</b> — три одинаковых кубика; сумма всех пяти кубиков.',
+        '<b>4 одинаковых</b> — четыре одинаковых кубика; сумма всех пяти кубиков.',
+        '<b>Фулл-хаус</b> — три одного числа и два другого; 25 очков.',
+        '<b>Малый стрит</b> — 4 кубика подряд (1-2-3-4, 2-3-4-5 или 3-4-5-6); 30 очков.',
+        '<b>Большой стрит</b> — 5 кубиков подряд (1-2-3-4-5 или 2-3-4-5-6); 40 очков.',
+        '<b>Яхцзы (покер / 5 одинаковых)</b> — пять одинаковых кубиков; 50 очков. Каждый следующий Яхцзы — бонус +100.',
         '<b>Шанс</b> — сумма любых пяти кубиков.'
       ],
       rows: {
-        ones: ['Единицы', '× 1 очко'],
-        twos: ['Двойки', '× 2 очки'],
-        threes: ['Тройки', '× 3 очки'],
-        fours: ['Четверки', '× 4 очки'],
-        fives: ['Пятерки', '× 5 очков'],
-        sixes: ['Шестерки', '× 6 очков'],
-        threeKind: ['Тройка 3x', '3 одинаковых · сумма кубиков'],
-        fourKind: ['Малый 4x', '4 одинаковых · сумма кубиков'],
+        ones: ['Единицы', '× 1'],
+        twos: ['Двойки', '× 2'],
+        threes: ['Тройки', '× 3'],
+        fours: ['Четверки', '× 4'],
+        fives: ['Пятерки', '× 5'],
+        sixes: ['Шестерки', '× 6'],
+        threeKind: ['3 одинаковых', '3 одинаковых · сумма'],
+        fourKind: ['4 одинаковых', '4 одинаковых · сумма'],
         fullHouse: ['Фулл-хаус', '3 + 2 · 25'],
-        poker: ['Большой 5x', '5 одинаковых · 50'],
+        smallStraight: ['Малый стрит', '4 подряд · 30'],
+        largeStraight: ['Большой стрит', '5 подряд · 40'],
+        poker: ['Яхцзы', '5 одинаковых · 50'],
         chance: ['Шанс', 'любые 5 кубиков'],
-        pokerBonus: ['Бонус покер', '+100 за каждый лишний']
+        pokerBonus: ['Бонус Яхцзы', '+100 за каждый лишний']
       }
     }
   };
@@ -161,6 +173,8 @@
     { key: 'threeKind', type: 'number', max: 30 },
     { key: 'fourKind', type: 'number', max: 30 },
     { key: 'fullHouse', type: 'fixed', fixedValue: 25 },
+    { key: 'smallStraight', type: 'fixed', fixedValue: 30 },
+    { key: 'largeStraight', type: 'fixed', fixedValue: 40 },
     { key: 'poker', type: 'fixed', fixedValue: 50 },
     { key: 'chance', type: 'number', max: 30 },
     { key: 'pokerBonus', type: 'number', max: 1000 }
