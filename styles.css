@@ -116,7 +116,8 @@ tr.calc-row td:first-child{background:rgba(15,23,42,.85);font-weight:700;color:v
 td.calc.total{color:var(--accent);font-size:15px;font-weight:800}
 td.calc.rank{color:var(--accent);font-weight:800}
 
-/* input widgets */
+td.score-just-entered{background:rgba(245,158,11,.24)!important;box-shadow:inset 0 0 0 2px var(--accent);border-radius:8px}
+td.score-just-entered .seg-btn.active,td.score-just-entered .pip.active,td.score-just-entered .quick.active{box-shadow:0 0 0 2px rgba(255,255,255,.7)}
 .pips{display:flex;gap:6px;justify-content:center;flex-wrap:nowrap}
 .pip{
   width:44px;height:44px;border-radius:10px;border:1px solid var(--border);background:rgba(15,23,42,.55);color:var(--txt);

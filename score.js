@@ -238,6 +238,7 @@
 
   var state = null;
   var lastAction = null;
+  var lastScored = null;
   var lastMobile = null;
   var lang = DEFAULT_LANG;
 
@@ -346,9 +347,10 @@
   function maxFor(row) { return row.type === 'fixed' ? row.fixedValue : (row.max || 5); }
   function isMobile() { return window.innerWidth <= 1024; }
 
-  function setCell(rowKey, idx, v) {
+  function setCell(rowKey, idx, v, fromSuggestion) {
     if (state) {
       lastAction = { rowKey: rowKey, idx: idx, from: state.scores[rowKey][idx], to: v };
+      lastScored = fromSuggestion ? { rowKey: rowKey, idx: idx } : null;
       state.scores[rowKey][idx] = String(v);
       setStatus(t('statusDone'));
       if (els.undoBtn) els.undoBtn.disabled = false;
@@ -395,6 +397,9 @@
   function cellInput(row, idx) {
     var td = document.createElement('td');
     var cur = val(row.key, idx);
+    if (lastScored && lastScored.rowKey === row.key && lastScored.idx === idx) {
+      td.classList.add('score-just-entered');
+    }
 
     if (row.type === 'fixed') {
       var wrap = document.createElement('div');
@@ -625,6 +630,7 @@
     if (!lastAction || !state) return;
     state.scores[lastAction.rowKey][lastAction.idx] = lastAction.from;
     lastAction = null;
+    lastScored = null;
     if (els.undoBtn) els.undoBtn.disabled = true;
     render();
   }
@@ -953,7 +959,7 @@
           if (!state) return;
           var cur = state.scores[o.key][selectedIdx];
           if (cur !== '') { if (!confirm(t('overwritePrompt', { row: o.label }))) return; }
-          setCell(o.key, selectedIdx, String(o.value));
+          setCell(o.key, selectedIdx, String(o.value), true);
           nextPlayer(selectedIdx);
         });
         suggestions.appendChild(b);
@@ -969,48 +975,45 @@
 
     var lastAcc = null;
     var lastShake = 0;
-    var SHAKE_THRESHOLD = 7;
-    var SHAKE_DEBOUNCE = 250;
-    var SHAKE_COOLDOWN = 1500;
-    var shakeTimer = null;
+    var SHAKE_THRESHOLD = 3.5;
+    var SHAKE_COOLDOWN = 1200;
+    var shakeEnabled = false;
 
     function onMotion(e) {
-      var acc = e.accelerationIncludingGravity || e.acceleration;
-      if (!acc || acc.x == null || acc.y == null || acc.z == null) return;
+      var acc = e.acceleration || e.accelerationIncludingGravity;
+      if (!acc || typeof acc.x !== 'number' || typeof acc.y !== 'number' || typeof acc.z !== 'number') return;
       var now = Date.now();
-      if (now - lastShake < SHAKE_COOLDOWN) return;
-      if (!lastAcc) { lastAcc = { x: acc.x, y: acc.y, z: acc.z }; return; }
-      var dx = acc.x - lastAcc.x, dy = acc.y - lastAcc.y, dz = acc.z - lastAcc.z;
-      lastAcc = { x: acc.x, y: acc.y, z: acc.z };
+      var current = { x: acc.x, y: acc.y, z: acc.z };
+      if (!lastAcc) { lastAcc = current; return; }
+      var dx = current.x - lastAcc.x, dy = current.y - lastAcc.y, dz = current.z - lastAcc.z;
+      lastAcc = current;
       var delta = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      if (delta > SHAKE_THRESHOLD) {
-        if (shakeTimer) clearTimeout(shakeTimer);
-        shakeTimer = setTimeout(function () {
-          if (turnState && turnState.currentRoll < MAX_ROLLS) {
-            startRolling();
-            lastShake = Date.now();
-          }
-        }, SHAKE_DEBOUNCE);
+      if (delta >= SHAKE_THRESHOLD && now - lastShake >= SHAKE_COOLDOWN) {
+        lastShake = now;
+        if (turnState && turnState.currentRoll < MAX_ROLLS) startRolling();
       }
+    }
+
+    function enableShake() {
+      if (shakeEnabled) return;
+      window.addEventListener('devicemotion', onMotion, { passive: true });
+      shakeEnabled = true;
+      lastAcc = null;
+      if (shakeBtn) shakeBtn.classList.add('active');
     }
 
     function requestShake() {
       if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-        DeviceMotionEvent.requestPermission().then(function (s) {
-          if (s === 'granted') {
-            window.addEventListener('devicemotion', onMotion, { passive: true });
-            if (shakeBtn) { shakeBtn.classList.add('active'); shakeBtn.textContent = t('shakeBtn'); }
-          } else {
-            if (shakeBtn) shakeBtn.textContent = t('shakeDenied') || 'Permission denied';
-          }
+        DeviceMotionEvent.requestPermission().then(function (permission) {
+          if (permission === 'granted') enableShake();
+          else if (shakeBtn) shakeBtn.textContent = t('shakeDenied') || 'Permission denied';
         }).catch(function (err) {
           if (shakeBtn) shakeBtn.textContent = (t('shakeError') || 'Shake unavailable') + (err && err.message ? ': ' + err.message : '');
         });
       } else if ('DeviceMotionEvent' in window) {
-        window.addEventListener('devicemotion', onMotion, { passive: true });
-        if (shakeBtn) { shakeBtn.classList.add('active'); shakeBtn.textContent = t('shakeBtn'); }
-      } else {
-        if (shakeBtn) shakeBtn.textContent = t('shakeUnsupported') || 'Shake unsupported';
+        enableShake();
+      } else if (shakeBtn) {
+        shakeBtn.textContent = t('shakeUnsupported') || 'Shake unsupported';
       }
     }
 
