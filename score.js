@@ -472,13 +472,21 @@
     state.players.forEach(function (n, i) {
       var th = document.createElement('th');
       var rankCls = c.rank[i] === 1 ? 'gold' : c.rank[i] === 2 ? 'silver' : c.rank[i] === 3 ? 'bronze' : '';
-      th.innerHTML = '<div class="player-head">' +
-        '<span class="player-name">' + n + '</span>' +
+      var selector = document.createElement('button');
+      selector.type = 'button';
+      selector.className = 'player-head player-head-select' + (state.mobileIdx === i ? ' active' : '');
+      selector.setAttribute('aria-pressed', state.mobileIdx === i ? 'true' : 'false');
+      selector.setAttribute('aria-label', 'Select player ' + n + ', score ' + c.grand[i]);
+      selector.innerHTML = '<span class="player-name">' + n + '</span>' +
         '<span class="player-meta ' + rankCls + '">' +
           '<span class="ph-rank">' + c.rank[i] + '</span>' +
           '<span class="ph-total">' + c.grand[i] + '</span>' +
-        '</span>' +
-      '</div>';
+        '</span>';
+      selector.addEventListener('click', function () {
+        state.mobileIdx = i;
+        render();
+      });
+      th.appendChild(selector);
       hr.appendChild(th);
     });
     thead.appendChild(hr);
@@ -914,37 +922,7 @@
       suggestions.innerHTML = '';
       if (opts.length === 0) { suggestions.textContent = t('suggestNone'); return; }
 
-      var mobile = isMobile();
-      var selectedIdx = mobile ? (state.mobileIdx || 0) : 0;
-
-      if (!mobile) {
-        var playerBar = document.createElement('div');
-        playerBar.className = 'suggest-player-bar';
-        var playerLabel = document.createElement('span');
-        playerLabel.className = 'suggest-player-label';
-        playerLabel.textContent = t('suggestPlayer');
-        playerBar.appendChild(playerLabel);
-
-        var playerChips = document.createElement('div');
-        playerChips.className = 'player-chips';
-        function renderChips() {
-          playerChips.innerHTML = '';
-          state.players.forEach(function (name, i) {
-            var chip = document.createElement('button');
-            chip.type = 'button';
-            chip.className = 'player-chip' + (i === selectedIdx ? ' active' : '');
-            chip.textContent = name;
-            chip.addEventListener('click', function () {
-              selectedIdx = i;
-              renderChips();
-            });
-            playerChips.appendChild(chip);
-          });
-        }
-        renderChips();
-        playerBar.appendChild(playerChips);
-        suggestions.appendChild(playerBar);
-      }
+      var selectedIdx = state.mobileIdx || 0;
 
       var title = document.createElement('div');
       title.className = 'suggest-title';
@@ -957,10 +935,11 @@
         b.textContent = o.label + ' · ' + o.value;
         b.addEventListener('click', function () {
           if (!state) return;
-          var cur = state.scores[o.key][selectedIdx];
+          var targetIdx = state.mobileIdx || 0;
+          var cur = state.scores[o.key][targetIdx];
           if (cur !== '') { if (!confirm(t('overwritePrompt', { row: o.label }))) return; }
-          setCell(o.key, selectedIdx, String(o.value), true);
-          nextPlayer(selectedIdx);
+          setCell(o.key, targetIdx, String(o.value), true);
+          nextPlayer(targetIdx);
         });
         suggestions.appendChild(b);
       });
