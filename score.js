@@ -708,10 +708,10 @@
     function analyze(hand) {
       var c = count(hand);
       var maxCount = 0; for (var k in c) if (c[k] > maxCount) maxCount = c[k];
-      var hasPair = false, hasThree = false;
+      var hasTwo = false, hasThree = false;
       for (var kk in c) {
-        if (c[kk] >= 2) hasPair = true;
-        if (c[kk] >= 3) hasThree = true;
+        if (c[kk] === 2) hasTwo = true;
+        if (c[kk] === 3) hasThree = true;
       }
       var s = sum(hand);
       var res = [];
@@ -721,7 +721,7 @@
       });
       res.push({ key: 'threeKind', label: I18N[lang].rows.threeKind[0], value: maxCount >= 3 ? s : 0 });
       res.push({ key: 'fourKind', label: I18N[lang].rows.fourKind[0], value: maxCount >= 4 ? s : 0 });
-      res.push({ key: 'fullHouse', label: I18N[lang].rows.fullHouse[0], value: (hasThree && hasPair && maxCount !== 5) ? 25 : 0 });
+      res.push({ key: 'fullHouse', label: I18N[lang].rows.fullHouse[0], value: (hasTwo && hasThree) ? 25 : 0 });
       res.push({ key: 'smallStraight', label: I18N[lang].rows.smallStraight[0], value: hasSequence(hand, 4) ? 30 : 0 });
       res.push({ key: 'largeStraight', label: I18N[lang].rows.largeStraight[0], value: hasSequence(hand, 5) ? 40 : 0 });
       res.push({ key: 'poker', label: I18N[lang].rows.poker[0], value: maxCount >= 5 ? 50 : 0 });
