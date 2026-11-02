@@ -471,12 +471,8 @@
     hr.appendChild(thCat);
     state.players.forEach(function (n, i) {
       var th = document.createElement('th');
-      var rankCls = c.rank[i] === 1 ? 'gold' : c.rank[i] === 2 ? 'silver' : c.rank[i] === 3 ? 'bronze' : '';
-      th.innerHTML = '<div class="player-head' + (state.mobileIdx === i ? ' active' : '') + '">' +
+      th.innerHTML = '<div class="player-head">' +
         '<span class="player-name">' + n + '</span>' +
-        '<span class="player-meta ' + rankCls + '">' +
-          '<span class="ph-rank">' + c.rank[i] + '</span>' +
-        '</span>' +
       '</div>';
       hr.appendChild(th);
     });
