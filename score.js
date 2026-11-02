@@ -42,6 +42,7 @@
       rollBtn: '🎲 Roll dice',
       shakeBtn: '📳 Shake to roll',
       suggestTitle: 'Suggestions for current player',
+      suggestPlayer: 'For player',
       suggestNone: 'No scoring matches this roll.',
       overwritePrompt: '{{row}} already has a score. Overwrite?',
       rows: {
@@ -100,6 +101,7 @@
       rollBtn: '🎲 Кинути кубики',
       shakeBtn: '📳 Трясти',
       suggestTitle: 'Пропозиції для активного гравця',
+      suggestPlayer: 'Гравцю',
       suggestNone: 'Немає підходящої комбінації.',
       overwritePrompt: 'У {{row}} вже є очки. Перезаписати?',
       rows: {
@@ -158,6 +160,7 @@
       rollBtn: '🎲 Бросить кубики',
       shakeBtn: '📳 Трясти',
       suggestTitle: 'Варианты для активного игрока',
+      suggestPlayer: 'Игроку',
       suggestNone: 'Нет подходящей комбинации.',
       overwritePrompt: 'В {{row}} уже есть очки. Перезаписать?',
       rows: {
@@ -767,6 +770,27 @@
       if (!suggestions) return;
       suggestions.innerHTML = '';
       if (opts.length === 0) { suggestions.textContent = t('suggestNone'); return; }
+
+      var playerBar = document.createElement('div');
+      playerBar.className = 'suggest-player-bar';
+      var playerLabel = document.createElement('span');
+      playerLabel.className = 'suggest-player-label';
+      playerLabel.textContent = t('suggestPlayer');
+      playerBar.appendChild(playerLabel);
+
+      var select = document.createElement('select');
+      select.className = 'suggest-player-select';
+      select.id = 'suggestPlayerSelect';
+      state.players.forEach(function (name, i) {
+        var o = document.createElement('option');
+        o.value = String(i);
+        o.textContent = name;
+        if ((!isMobile() && i === 0) || (isMobile() && i === (state.mobileIdx || 0))) o.selected = true;
+        select.appendChild(o);
+      });
+      playerBar.appendChild(select);
+      suggestions.appendChild(playerBar);
+
       var title = document.createElement('div');
       title.className = 'suggest-title';
       title.textContent = t('suggestTitle');
@@ -778,8 +802,8 @@
         b.textContent = o.label + ' · ' + o.value;
         b.addEventListener('click', function () {
           if (!state) return;
-          // mobile: apply to current player; desktop: need to pick a player index
-          var idx = isMobile() ? (state.mobileIdx || 0) : 0;
+          var sel = document.getElementById('suggestPlayerSelect');
+          var idx = sel ? Number(sel.value) : (isMobile() ? (state.mobileIdx || 0) : 0);
           var cur = state.scores[o.key][idx];
           if (cur !== '') { if (!confirm(t('overwritePrompt', { row: o.label }))) return; }
           setCell(o.key, idx, String(o.value));
