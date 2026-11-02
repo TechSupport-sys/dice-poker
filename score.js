@@ -720,8 +720,13 @@
     };
 
     var turnState = null;
+    var rolling = false;
+    var rollGeneration = 0;
 
     function resetTurn() {
+      rollGeneration++;
+      rolling = false;
+      if (rollBtn) rollBtn.disabled = false;
       turnState = {
         currentRoll: 0,
         values: [0, 0, 0, 0, 0],
@@ -874,12 +879,16 @@
     }
 
     function startRolling() {
-      if (!tray || !turnState) return;
+      if (!tray || !turnState || rolling) return;
       if (turnState.currentRoll >= MAX_ROLLS) {
         if (navigator.vibrate) navigator.vibrate(30);
         return;
       }
-      turnState.currentRoll++;
+      rolling = true;
+      if (rollBtn) rollBtn.disabled = true;
+      var generation = rollGeneration;
+      var activeTurn = turnState;
+      activeTurn.currentRoll++;
       updateMeta();
       if (rollResult) rollResult.classList.add('hidden');
       if (suggestions) suggestions.innerHTML = '';
@@ -887,9 +896,9 @@
 
       var cubes = Array.prototype.slice.call(tray.querySelectorAll('.die'));
       cubes.forEach(function (cube, i) {
-        if (turnState.held[i]) return;
-        turnState.values[i] = randomFace();
-        var v = turnState.values[i];
+        if (activeTurn.held[i]) return;
+        activeTurn.values[i] = randomFace();
+        var v = activeTurn.values[i];
         var view = FACE[v];
         var x = view[0] + 360 * (3 + Math.floor(Math.random() * 2));
         var y = view[1] + 360 * (3 + Math.floor(Math.random() * 2));
@@ -898,8 +907,11 @@
       });
 
       setTimeout(function () {
+        if (generation !== rollGeneration || turnState !== activeTurn) return;
         sortTray();
-        showResult(turnState.values);
+        showResult(activeTurn.values);
+        rolling = false;
+        if (rollBtn) rollBtn.disabled = false;
       }, 900);
     }
 
