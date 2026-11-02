@@ -618,6 +618,7 @@
       chip.addEventListener('click', function () {
         state.mobileIdx = p.idx;
         render();
+        if (window.DICE) window.DICE.refreshSuggestions();
       });
       var rank = p.rank === 1 ? '🥇' : p.rank === 2 ? '🥈' : p.rank === 3 ? '🥉' : '#' + p.rank;
       var filled = t('filled', { f: p.filled, cat: ROW_DEF.length });
@@ -910,12 +911,13 @@
       resultDice.innerHTML = '';
       hand.slice().sort(function (a, b) { return a - b; }).forEach(function (v, i) { resultDice.appendChild(createResultPip(v, i)); });
       if (rollResult) rollResult.classList.remove('hidden');
-      var opts = analyze(hand).filter(function (o) { return o.value > 0; }).sort(function (a, b) { return b.value - a.value; });
-      if (!suggestions) return;
+      if (!suggestions || !state) return;
       suggestions.innerHTML = '';
-      if (opts.length === 0) { suggestions.textContent = t('suggestNone'); return; }
-
       var selectedIdx = state.mobileIdx || 0;
+      var opts = analyze(hand).filter(function (o) {
+        return o.value > 0 && state.scores[o.key] && state.scores[o.key][selectedIdx] === '';
+      }).sort(function (a, b) { return b.value - a.value; });
+      if (opts.length === 0) { suggestions.textContent = t('suggestNone'); return; }
 
       var title = document.createElement('div');
       title.className = 'suggest-title';
@@ -930,7 +932,7 @@
           if (!state) return;
           var targetIdx = state.mobileIdx || 0;
           var cur = state.scores[o.key][targetIdx];
-          if (cur !== '') { if (!confirm(t('overwritePrompt', { row: o.label }))) return; }
+          if (cur !== '') return;
           setCell(o.key, targetIdx, String(o.value), true);
           nextPlayer(targetIdx);
         });
@@ -1022,7 +1024,15 @@
       }
     }
 
-    window.DICE = { bind: bind, start: startRolling, stop: null, reset: resetTurn, setMode: setDiceMode, test: function(h){ return analyze(h).filter(function(x){return x.value>0;});} };
+    window.DICE = {
+      bind: bind,
+      start: startRolling,
+      stop: null,
+      reset: resetTurn,
+      setMode: setDiceMode,
+      refreshSuggestions: function () { if (turnState && turnState.currentRoll > 0) showResult(turnState.values); },
+      test: function(h){ return analyze(h).filter(function(x){return x.value>0;}); }
+    };
     return window.DICE;
   })();
   // bind dice after creating game so tray exists; also bind once on init
