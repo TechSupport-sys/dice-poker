@@ -820,21 +820,18 @@
 
     function setDiceMode(mode) {
       if (!diceStage) return;
-      var rollActions = rollBtn ? rollBtn.parentElement : null;
+      resetTurn();
+      diceStage.classList.toggle('hidden', !mode);
       if (mode) {
         diceStage.classList.remove('manual');
         if (tray) tray.classList.remove('hidden');
         if (diceMeta) diceMeta.classList.remove('hidden');
-        if (rollActions) rollActions.classList.remove('hidden');
+        if (rollBtn && rollBtn.parentElement) rollBtn.parentElement.classList.remove('hidden');
         if (manualDice) manualDice.classList.add('hidden');
       } else {
-        diceStage.classList.add('manual');
-        if (tray) tray.classList.add('hidden');
-        if (diceMeta) diceMeta.classList.add('hidden');
-        if (rollActions) rollActions.classList.add('hidden');
-        if (manualDice) manualDice.classList.remove('hidden');
+        if (suggestions) suggestions.innerHTML = '';
+        if (rollResult) rollResult.classList.add('hidden');
       }
-      resetTurn();
     }
 
     function manualSuggest() {
