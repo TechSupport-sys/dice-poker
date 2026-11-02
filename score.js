@@ -707,8 +707,6 @@
         c.appendChild(f);
       });
       s.appendChild(c);
-      s.addEventListener('click', function (e) { toggleHold(idx); });
-      s.addEventListener('touchstart', function (e) { e.preventDefault(); toggleHold(idx); });
       return { scene: s, cube: c };
     }
 
@@ -717,6 +715,10 @@
       tray.innerHTML = '';
       for (var i = 0; i < DICE_COUNT; i++) {
         var d = createDie(i);
+        (function (idx) {
+          d.scene.addEventListener('click', function (e) { e.preventDefault(); toggleHold(idx); });
+          d.scene.addEventListener('touchstart', function (e) { e.preventDefault(); toggleHold(idx); });
+        })(i);
         tray.appendChild(d.scene);
       }
       if (!turnState) resetTurn();
@@ -939,11 +941,12 @@
       renderTray();
       if (rollBtn) {
         rollBtn.onmousedown = function (e) { e.preventDefault(); startRolling(); };
-        rollBtn.onmouseup = null;
-        rollBtn.onmouseleave = null;
+        rollBtn.onmouseup = function (e) { e.preventDefault(); };
+        rollBtn.onmouseleave = function (e) { e.preventDefault(); };
         rollBtn.ontouchstart = function (e) { e.preventDefault(); startRolling(); };
-        rollBtn.ontouchend = null;
-        rollBtn.ontouchcancel = null;
+        rollBtn.ontouchend = function (e) { e.preventDefault(); };
+        rollBtn.ontouchcancel = function (e) { e.preventDefault(); };
+        rollBtn.addEventListener('click', startRolling, false);
       }
       if (shakeBtn) shakeBtn.onclick = requestShake;
       if (endTurnBtn) endTurnBtn.onclick = endTurn;
