@@ -1017,13 +1017,10 @@
     function bind() {
       renderTray();
       if (rollBtn) {
-        rollBtn.onmousedown = function (e) { e.preventDefault(); startRolling(); };
-        rollBtn.onmouseup = function (e) { e.preventDefault(); };
-        rollBtn.onmouseleave = function (e) { e.preventDefault(); };
-        rollBtn.ontouchstart = function (e) { e.preventDefault(); startRolling(); };
-        rollBtn.ontouchend = function (e) { e.preventDefault(); };
-        rollBtn.ontouchcancel = function (e) { e.preventDefault(); };
-        rollBtn.addEventListener('click', startRolling, false);
+        // One completed throw per deliberate tap. bind() runs on init and game start,
+        // so use an onclick property rather than accumulating listeners; do not also
+        // roll on mousedown/touchstart, because that double-counts a single tap.
+        rollBtn.onclick = function (e) { e.preventDefault(); startRolling(); };
       }
       if (shakeBtn) shakeBtn.onclick = requestShake;
       if (manualSuggestBtn) manualSuggestBtn.onclick = manualSuggest;
