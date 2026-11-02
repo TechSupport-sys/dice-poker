@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Dice Poker — Scorecard</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🎲</span>
+      <h1 data-i18n="brand">Dice Poker</h1>
+    </div>
+    <div class="top-right">
+      <select id="langSelect" class="lang-select" aria-label="Language"></select>
+      <div class="status" id="status"></div>
+    </div>
+  </header>
+
+  <section class="panel" id="setup">
+    <h2 data-i18n="setupTitle">New game</h2>
+    <label class="field"><span data-i18n="playersLabel">Players</span>
+      <select id="playerCount"></select>
+    </label>
+    <div id="nameFields" class="name-grid"></div>
+    <div class="btns">
+      <button class="primary" id="createBtn" data-i18n="createBtn">Create game</button>
+    </div>
+    <p class="hint" data-i18n="hint">Play → screenshot. Scores are not saved.</p>
+  </section>
+
+  <section class="panel hidden" id="game">
+    <div class="panel-head">
+      <div class="title-block">
+        <h2 id="gameTitle">Game</h2>
+        <div class="leaderboard" id="leaderboard"></div>
+      </div>
+      <div class="actions">
+        <button class="ghost small" id="undoBtn" disabled data-i18n="undoBtn">↩ Undo</button>
+        <button class="ghost small" id="newGameBtn" data-i18n="newGameBtn">New</button>
+      </div>
+    </div>
+    <div id="playerTabs" class="player-tabs hidden"></div>
+    <div class="table-wrap"><table id="scoreTable"></table></div>
+    <details class="rules">
+      <summary data-i18n="rulesSummary">How to score combinations</summary>
+      <ul id="rulesList"></ul>
+    </details>
+  </section>
+
+  <footer class="foot">
+    <span id="netInfo"></span>
+  </footer>
+</div>
+
+<script src="./score.js"></script>
+</body>
+</html>
