@@ -42,7 +42,6 @@
       rollBtn: '🎲 Roll dice',
       rollCount: 'Roll {{n}}/{{max}}',
       heldHint: 'Tap dice to hold',
-      endTurnBtn: '✓ End turn',
 
       shakeBtn: '📳 Shake to roll',
       shakeDenied: 'Permission denied',
@@ -52,6 +51,8 @@
       suggestPlayer: 'For player',
       suggestNone: 'No scoring matches this roll.',
       overwritePrompt: '{{row}} already has a score. Overwrite?',
+      diceModeLabel: 'Virtual dice',
+      manualSuggestBtn: 'Get suggestions',
       rows: {
         ones: ['Aces', '× 1'],
         twos: ['Twos', '× 2'],
@@ -108,7 +109,6 @@
       rollBtn: '🎲 Кинути кубики',
       rollCount: 'Кидок {{n}}/{{max}}',
       heldHint: 'Тапни кубик, щоб залишити',
-      endTurnBtn: '✓ Завершити хід',
 
       shakeBtn: '📳 Трясти',
       shakeDenied: 'Доступ запрещён',
@@ -121,6 +121,8 @@
       suggestPlayer: 'Гравцю',
       suggestNone: 'Немає підходящої комбінації.',
       overwritePrompt: 'У {{row}} вже є очки. Перезаписати?',
+      diceModeLabel: 'Віртуальні кубики',
+      manualSuggestBtn: 'Підказки',
       rows: {
         ones: ['Одиниці', '× 1'],
         twos: ['Двійки', '× 2'],
@@ -177,13 +179,14 @@
       rollBtn: '🎲 Бросить кубики',
       rollCount: 'Бросок {{n}}/{{max}}',
       heldHint: 'Тапни кубик, чтобы оставить',
-      endTurnBtn: '✓ Завершить ход',
 
       shakeBtn: '📳 Трясти',
       suggestTitle: 'Варианты для активного игрока',
       suggestPlayer: 'Игроку',
       suggestNone: 'Нет подходящей комбинации.',
       overwritePrompt: 'В {{row}} уже есть очки. Перезаписать?',
+      diceModeLabel: 'Виртуальные кубики',
+      manualSuggestBtn: 'Варианты',
       rows: {
         ones: ['Единицы', '× 1'],
         twos: ['Двойки', '× 2'],
@@ -227,7 +230,9 @@
     setup: $('setup'), game: $('game'), status: $('status'),
     playerCount: $('playerCount'), names: $('nameFields'), title: $('gameTitle'),
     table: $('scoreTable'), leaderboard: $('leaderboard'), tabs: $('playerTabs'),
-    foot: $('netInfo'), undoBtn: $('undoBtn'), langSelect: $('langSelect'), rulesList: $('rulesList')
+    foot: $('netInfo'), undoBtn: $('undoBtn'), langSelect: $('langSelect'), rulesList: $('rulesList'),
+    diceMode: $('diceMode'), diceStage: $('diceStage'), manualDice: $('manualDice'),
+    manualRow: $('manualRow'), manualSuggestBtn: $('manualSuggestBtn')
   };
   if (!els.table) return;
 
@@ -627,10 +632,22 @@
   function openGame(st) {
     state = st;
     state.mobileIdx = 0;
+    if (typeof state.diceMode !== 'boolean') state.diceMode = true;
     els.setup.classList.add('hidden');
     els.game.classList.remove('hidden');
     lastAction = null;
     if (els.undoBtn) els.undoBtn.disabled = true;
+    render();
+  }
+
+  function nextPlayer(currentIdx) {
+    if (!state) return;
+    var idx = (typeof currentIdx === 'number') ? currentIdx : (state.mobileIdx || 0);
+    state.mobileIdx = (idx + 1) % state.players.length;
+    if (window.DICE) window.DICE.reset();
+    if (els.manualRow) {
+      Array.prototype.slice.call(els.manualRow.querySelectorAll('input')).forEach(function (inp) { inp.value = '1'; });
+    }
     render();
   }
 
@@ -639,7 +656,7 @@
     var names = Array.prototype.slice.call(els.names.querySelectorAll('input'))
       .map(function (el, i) { return (el.value || '').trim() || (t('playerNamePlaceholder') + ' ' + (i + 1)); })
       .slice(0, n);
-    openGame({ players: names, scores: emptyScores(names.length) });
+    openGame({ players: names, scores: emptyScores(names.length), diceMode: els.diceMode ? els.diceMode.checked : true });
   }
 
   var resizeTimer = null;
@@ -676,7 +693,10 @@
     var rollResult = document.getElementById('rollResult');
     var rollBtn = document.getElementById('rollBtn');
     var shakeBtn = document.getElementById('shakeBtn');
-    var endTurnBtn = document.getElementById('endTurnBtn');
+    var diceStage = document.getElementById('diceStage');
+    var manualDice = document.getElementById('manualDice');
+    var manualRow = document.getElementById('manualRow');
+    var manualSuggestBtn = document.getElementById('manualSuggestBtn');
 
     var DICE_COUNT = 5;
     var MAX_ROLLS = 3;
@@ -787,6 +807,39 @@
       heldHintEl.textContent = t('heldHint');
     }
 
+    function setDiceMode(mode) {
+      if (!diceStage) return;
+      var rollActions = rollBtn ? rollBtn.parentElement : null;
+      if (mode) {
+        diceStage.classList.remove('manual');
+        if (tray) tray.classList.remove('hidden');
+        if (diceMeta) diceMeta.classList.remove('hidden');
+        if (rollActions) rollActions.classList.remove('hidden');
+        if (manualDice) manualDice.classList.add('hidden');
+      } else {
+        diceStage.classList.add('manual');
+        if (tray) tray.classList.add('hidden');
+        if (diceMeta) diceMeta.classList.add('hidden');
+        if (rollActions) rollActions.classList.add('hidden');
+        if (manualDice) manualDice.classList.remove('hidden');
+      }
+      resetTurn();
+    }
+
+    function manualSuggest() {
+      if (!manualRow || !state) return;
+      var inputs = manualRow.querySelectorAll('input');
+      var values = [];
+      for (var i = 0; i < inputs.length; i++) {
+        var v = Math.max(1, Math.min(6, Math.trunc(Number(inputs[i].value) || 1)));
+        values.push(v);
+        inputs[i].value = String(v);
+      }
+      turnState = { currentRoll: 1, values: values, held: [false, false, false, false, false] };
+      updateMeta();
+      showResult(values);
+    }
+
     function applyHeldVisuals() {
       if (!tray || !turnState) return;
       var scenes = tray.querySelectorAll('.die-scene');
@@ -799,19 +852,6 @@
       if (!turnState || turnState.currentRoll === 0) return;
       turnState.held[idx] = !turnState.held[idx];
       applyHeldVisuals();
-    }
-
-    function endTurn() {
-      if (!turnState) return;
-      if (turnState.currentRoll === 0) return;
-      resetTurn();
-      if (rollResult) rollResult.classList.add('hidden');
-      if (suggestions) suggestions.innerHTML = '';
-      if (isMobile() && state) {
-        state.mobileIdx = (state.mobileIdx + 1) % state.players.length;
-        render();
-      }
-      updateMeta();
     }
 
     function startRolling() {
@@ -839,14 +879,29 @@
       });
 
       setTimeout(function () {
+        sortTray();
         showResult(turnState.values);
       }, 900);
+    }
+
+    function sortTray() {
+      if (!tray || !turnState) return;
+      var scenes = Array.prototype.slice.call(tray.querySelectorAll('.die-scene'));
+      if (scenes.length !== DICE_COUNT) return;
+      var order = scenes.map(function (_, i) { return i; });
+      order.sort(function (a, b) { return turnState.values[a] - turnState.values[b]; });
+      var sortedValues = order.map(function (i) { return turnState.values[i]; });
+      var sortedHeld = order.map(function (i) { return turnState.held[i]; });
+      turnState.values = sortedValues;
+      turnState.held = sortedHeld;
+      order.forEach(function (i) { tray.appendChild(scenes[i]); });
+      applyHeldVisuals();
     }
 
     function showResult(hand) {
       if (!resultDice) return;
       resultDice.innerHTML = '';
-      hand.forEach(function (v, i) { resultDice.appendChild(createResultPip(v, i)); });
+      hand.slice().sort(function (a, b) { return a - b; }).forEach(function (v, i) { resultDice.appendChild(createResultPip(v, i)); });
       if (rollResult) rollResult.classList.remove('hidden');
       var opts = analyze(hand).filter(function (o) { return o.value > 0; }).sort(function (a, b) { return b.value - a.value; });
       if (!suggestions) return;
@@ -899,6 +954,7 @@
           var cur = state.scores[o.key][selectedIdx];
           if (cur !== '') { if (!confirm(t('overwritePrompt', { row: o.label }))) return; }
           setCell(o.key, selectedIdx, String(o.value));
+          nextPlayer(selectedIdx);
         });
         suggestions.appendChild(b);
       });
@@ -970,15 +1026,15 @@
         rollBtn.addEventListener('click', startRolling, false);
       }
       if (shakeBtn) shakeBtn.onclick = requestShake;
-      if (endTurnBtn) endTurnBtn.onclick = endTurn;
+      if (manualSuggestBtn) manualSuggestBtn.onclick = manualSuggest;
     }
 
-    window.DICE = { bind: bind, start: startRolling, stop: null, reset: resetTurn, test: function(h){ return analyze(h).filter(function(x){return x.value>0;});} };
+    window.DICE = { bind: bind, start: startRolling, stop: null, reset: resetTurn, setMode: setDiceMode, test: function(h){ return analyze(h).filter(function(x){return x.value>0;});} };
     return window.DICE;
   })();
   // bind dice after creating game so tray exists; also bind once on init
   var originalOpenGame = openGame;
-  openGame = function (st) { originalOpenGame(st); DICE.bind(); };
+  openGame = function (st) { originalOpenGame(st); DICE.bind(); if (st && typeof st.diceMode === 'boolean') DICE.setMode(st.diceMode); };
   DICE.bind();
 
   renderLabels();

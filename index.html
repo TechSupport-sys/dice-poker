@@ -25,6 +25,9 @@
     <label class="field"><span data-i18n="playersLabel">Players</span>
       <select id="playerCount"></select>
     </label>
+    <label class="field inline"><span data-i18n="diceModeLabel">Virtual dice</span>
+      <input type="checkbox" id="diceMode" checked>
+    </label>
     <div id="nameFields" class="name-grid"></div>
     <div class="btns">
       <button class="primary" id="createBtn" data-i18n="createBtn">Create game</button>
@@ -53,8 +56,17 @@
       <div class="roll-actions">
         <button class="primary roll-btn" id="rollBtn" data-i18n="rollBtn">🎲 Roll dice</button>
         <button class="ghost" id="shakeBtn" data-i18n="shakeBtn">📳 Shake to roll</button>
-        <button class="ghost" id="endTurnBtn" data-i18n="endTurnBtn">✓ End turn</button>
       </div>
+    <div class="manual-dice hidden" id="manualDice">
+      <div class="manual-row" id="manualRow">
+        <input type="number" min="1" max="6" value="1" class="manual-die" data-idx="0">
+        <input type="number" min="1" max="6" value="1" class="manual-die" data-idx="1">
+        <input type="number" min="1" max="6" value="1" class="manual-die" data-idx="2">
+        <input type="number" min="1" max="6" value="1" class="manual-die" data-idx="3">
+        <input type="number" min="1" max="6" value="1" class="manual-die" data-idx="4">
+      </div>
+      <button class="primary" id="manualSuggestBtn" data-i18n="manualSuggestBtn">Get suggestions</button>
+    </div>
       <div class="roll-result hidden" id="rollResult">
         <div class="result-dice" id="resultDice"></div>
         <div class="suggestions" id="suggestions"></div>
@@ -72,6 +84,6 @@
   </footer>
 </div>
 
-<script src="./score.js?v=9"></script>
+<script src="./score.js?v=10"></script>
 </body>
 </html>
