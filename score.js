@@ -733,14 +733,14 @@
     }
 
     var rolling = false;
-    function roll() {
+    function roll(forcedHand) {
       if (rolling || !tray) return;
       rolling = true;
       if (rollBtn) rollBtn.disabled = true;
       var hand = [];
       var dice = Array.prototype.slice.call(tray.querySelectorAll('.die'));
       dice.forEach(function (cube, i) {
-        var v = 1 + Math.floor(Math.random() * 6);
+        var v = forcedHand ? forcedHand[i] : (1 + Math.floor(Math.random() * 6));
         hand.push(v);
         var turns = 2 + Math.floor(Math.random() * 2);
         var [x0, y0] = FACE[v];
