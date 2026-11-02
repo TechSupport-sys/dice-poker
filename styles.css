@@ -150,8 +150,8 @@ td.calc.rank{color:var(--accent);font-weight:800}
 .dice-tray{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;min-height:84px;padding:10px}
 .die-scene{width:56px;height:56px;perspective:260px}
 .die{width:100%;height:100%;position:relative;transform-style:preserve-3d;transform:rotateX(-22deg) rotateY(-28deg)}
-.die.rolling{animation:dieWobble .35s ease-in-out infinite}
-@keyframes dieWobble{0%{transform:rotateX(-22deg) rotateY(-28deg)}50%{transform:rotateX(-12deg) rotateY(-18deg)}100%{transform:rotateX(-32deg) rotateY(-38deg)}}
+.die.rolling{}
+.roll-btn.rolling{transform:scale(.96);filter:brightness(.9);box-shadow:inset 0 0 20px rgba(0,0,0,.3)}
 .face{position:absolute;width:56px;height:56px;background:#e2e8f0;border:1px solid #94a3b8;border-radius:10px;transform-style:preserve-3d;backface-visibility:hidden}
 /* dots via background radial gradients (always centered) */
 .f1{background:radial-gradient(circle at 50% 50%, #0f172a 18%, transparent 22%),#e2e8f0}

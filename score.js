@@ -697,6 +697,8 @@
       return el;
     }
 
+    function randomFace() { return 1 + Math.floor(Math.random() * 6); }
+
     function count(hand) {
       var c = {};
       hand.forEach(function (v) { c[v] = (c[v] || 0) + 1; });
@@ -727,7 +729,6 @@
       }
       var s = sum(hand);
       var res = [];
-      // upper matches
       [1, 2, 3, 4, 5, 6].forEach(function (v) {
         if (c[v]) res.push({ key: 'ones,twos,threes,fours,fives,sixes'.split(',')[v - 1], label: I18N[lang].rows[v === 1 ? 'ones' : v === 2 ? 'twos' : v === 3 ? 'threes' : v === 4 ? 'fours' : v === 5 ? 'fives' : 'sixes'][0], value: c[v] * v });
       });
@@ -741,33 +742,52 @@
       return res;
     }
 
-    var rolling = false;
-    function roll(forcedHand) {
-      if (rolling || !tray) return;
-        rolling = true;
-        if (rollBtn) rollBtn.disabled = true;
-        var hand = [];
-        var dice = Array.prototype.slice.call(tray.querySelectorAll('.die'));
-        dice.forEach(function (cube, i) {
-          var v = (forcedHand && Array.isArray(forcedHand) && forcedHand.length > i) ? forcedHand[i] : (1 + Math.floor(Math.random() * 6));
-          hand.push(v);
-          var turns = 2 + Math.floor(Math.random() * 2);
-          var view = FACE[v];
-          var x0 = view[0], y0 = view[1];
-          var x = x0 + 360 * turns;
-          var y = y0 + 360 * (2 + Math.floor(Math.random() * 2));
-          cube.style.transition = 'transform 1.1s cubic-bezier(0.18, 0.9, 0.32, 1.05)';
-          cube.style.transform = 'rotateX(' + x + 'deg) rotateY(' + y + 'deg)';
-        });
-        if (rollResult) rollResult.classList.add('hidden');
-        if (suggestions) suggestions.innerHTML = '';
-        if (navigator.vibrate) navigator.vibrate(60);
+    var isRolling = false;
+    var rollTimer = null;
+    var finalHand = [];
+    var cubes = [];
 
-        setTimeout(function () {
-          rolling = false;
-          if (rollBtn) rollBtn.disabled = false;
-          showResult(hand);
-        }, 1150);
+    function startRolling() {
+      if (isRolling || !tray) return;
+      isRolling = true;
+      if (rollResult) rollResult.classList.add('hidden');
+      if (suggestions) suggestions.innerHTML = '';
+      if (rollBtn) rollBtn.classList.add('rolling');
+      cubes = Array.prototype.slice.call(tray.querySelectorAll('.die'));
+      cubes.forEach(function (cube) {
+        cube.classList.add('rolling');
+        cube.style.transition = 'transform 0.18s linear';
+      });
+      if (navigator.vibrate) navigator.vibrate(40);
+      rollTimer = setInterval(function () {
+        cubes.forEach(function (cube) {
+          var rx = Math.floor(Math.random() * 720);
+          var ry = Math.floor(Math.random() * 720);
+          cube.style.transform = 'rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
+        });
+        if (navigator.vibrate) navigator.vibrate(20);
+      }, 180);
+    }
+
+    function stopRolling() {
+      if (!isRolling) return;
+      clearInterval(rollTimer);
+      finalHand = [];
+      cubes.forEach(function (cube) {
+        cube.classList.remove('rolling');
+        var v = randomFace();
+        finalHand.push(v);
+        var view = FACE[v];
+        var x = view[0] + 360 * (3 + Math.floor(Math.random() * 2));
+        var y = view[1] + 360 * (3 + Math.floor(Math.random() * 2));
+        cube.style.transition = 'transform 0.85s cubic-bezier(0.18, 0.9, 0.32, 1.05)';
+        cube.style.transform = 'rotateX(' + x + 'deg) rotateY(' + y + 'deg)';
+      });
+      if (rollBtn) rollBtn.classList.remove('rolling');
+      setTimeout(function () {
+        isRolling = false;
+        showResult(finalHand);
+      }, 900);
     }
 
     function showResult(hand) {
@@ -830,28 +850,37 @@
 
     var lastAcc = { x: 0, y: 0, z: 0 };
     var lastShake = 0;
-    var SHAKE_THRESHOLD = 12;
+    var SHAKE_THRESHOLD = 10;
+    var SHAKE_TIMEOUT = 350;
     function onMotion(e) {
       var acc = e.accelerationIncludingGravity || e.acceleration;
       if (!acc) return;
       var dx = acc.x - lastAcc.x, dy = acc.y - lastAcc.y, dz = acc.z - lastAcc.z;
       lastAcc = { x: acc.x, y: acc.y, z: acc.z };
       var delta = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      if (delta > SHAKE_THRESHOLD && Date.now() - lastShake > 1500) {
+      if (delta > SHAKE_THRESHOLD) {
         lastShake = Date.now();
-        roll();
+        if (!isRolling) startRolling();
       }
     }
+
+    var shakeCheckTimer = setInterval(function () {
+      if (isRolling && Date.now() - lastShake > SHAKE_TIMEOUT) {
+        stopRolling();
+      }
+    }, 100);
 
     function requestShake() {
       if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
         DeviceMotionEvent.requestPermission().then(function (s) {
-          if (s === 'granted') window.addEventListener('devicemotion', onMotion, { passive: true });
-          else if (shakeBtn) shakeBtn.textContent = t('shakeDenied') || 'Permission denied';
+          if (s === 'granted') {
+            window.addEventListener('devicemotion', onMotion, { passive: true });
+            if (shakeBtn) shakeBtn.classList.add('active');
+          } else if (shakeBtn) shakeBtn.textContent = t('shakeDenied') || 'Permission denied';
         }).catch(function (err) {
           if (shakeBtn) shakeBtn.textContent = (t('shakeError') || 'Shake unavailable') + (err && err.message ? '' : '');
         });
-      } else if (typeof window.ondevicemotion !== 'undefined' || 'DeviceMotionEvent' in window) {
+      } else if ('DeviceMotionEvent' in window) {
         window.addEventListener('devicemotion', onMotion, { passive: true });
         if (shakeBtn) shakeBtn.classList.add('active');
       } else {
@@ -861,17 +890,26 @@
 
     function bind() {
       renderTray();
-      if (rollBtn) rollBtn.onclick = roll;
+      if (rollBtn) {
+        rollBtn.onmousedown = function (e) { e.preventDefault(); startRolling(); };
+        rollBtn.onmouseup = stopRolling;
+        rollBtn.onmouseleave = stopRolling;
+        rollBtn.ontouchstart = function (e) { e.preventDefault(); startRolling(); };
+        rollBtn.ontouchend = stopRolling;
+        rollBtn.ontouchcancel = stopRolling;
+      }
       if (shakeBtn) shakeBtn.onclick = requestShake;
     }
 
-    window.DICE = { bind: bind, roll: roll, test: function(h){ return analyze(h).filter(function(x){return x.value>0;});} }; return window.DICE;
+    window.DICE = { bind: bind, start: startRolling, stop: stopRolling, test: function(h){ return analyze(h).filter(function(x){return x.value>0;});} };
+    return window.DICE;
   })();
 
   // bind dice after creating game so tray exists; also bind once on init
   var originalOpenGame = openGame;
   openGame = function (st) { originalOpenGame(st); DICE.bind(); };
   DICE.bind();
+
   renderLabels();
   nameFields();
   setStatus('');
