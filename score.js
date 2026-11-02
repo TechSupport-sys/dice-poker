@@ -41,6 +41,9 @@
       ],
       rollBtn: '🎲 Roll dice',
       shakeBtn: '📳 Shake to roll',
+      shakeDenied: 'Permission denied',
+      shakeError: 'Shake unavailable',
+      shakeUnsupported: 'Shake unsupported',
       suggestTitle: 'Suggestions for current player',
       suggestPlayer: 'For player',
       suggestNone: 'No scoring matches this roll.',
@@ -100,6 +103,12 @@
       ],
       rollBtn: '🎲 Кинути кубики',
       shakeBtn: '📳 Трясти',
+      shakeDenied: 'Доступ запрещён',
+      shakeError: 'Тряска недоступна',
+      shakeUnsupported: 'Тряска не поддерживается',
+      shakeDenied: 'Доступ заборонено',
+      shakeError: 'Тряска недоступна',
+      shakeUnsupported: 'Тряска не підтримується',
       suggestTitle: 'Пропозиції для активного гравця',
       suggestPlayer: 'Гравцю',
       suggestNone: 'Немає підходящої комбінації.',
@@ -735,30 +744,30 @@
     var rolling = false;
     function roll(forcedHand) {
       if (rolling || !tray) return;
-      rolling = true;
-      if (rollBtn) rollBtn.disabled = true;
-      var hand = [];
-      var dice = Array.prototype.slice.call(tray.querySelectorAll('.die'));
-      dice.forEach(function (cube, i) {
-        var v = forcedHand ? forcedHand[i] : (1 + Math.floor(Math.random() * 6));
-        hand.push(v);
-        var turns = 2 + Math.floor(Math.random() * 2);
-        var [x0, y0] = FACE[v];
-        var x = x0 + 360 * turns;
-        var y = y0 + 360 * (2 + Math.floor(Math.random() * 2));
-        // random tumble axis for visual chaos
-        cube.style.transition = 'transform 1.1s cubic-bezier(0.18, 0.9, 0.32, 1.05)';
-        cube.style.transform = 'rotateX(' + x + 'deg) rotateY(' + y + 'deg)';
-      });
-      if (rollResult) rollResult.classList.add('hidden');
-      if (suggestions) suggestions.innerHTML = '';
-      if (navigator.vibrate) navigator.vibrate(60);
+        rolling = true;
+        if (rollBtn) rollBtn.disabled = true;
+        var hand = [];
+        var dice = Array.prototype.slice.call(tray.querySelectorAll('.die'));
+        dice.forEach(function (cube, i) {
+          var v = (forcedHand && Array.isArray(forcedHand) && forcedHand.length > i) ? forcedHand[i] : (1 + Math.floor(Math.random() * 6));
+          hand.push(v);
+          var turns = 2 + Math.floor(Math.random() * 2);
+          var view = FACE[v];
+          var x0 = view[0], y0 = view[1];
+          var x = x0 + 360 * turns;
+          var y = y0 + 360 * (2 + Math.floor(Math.random() * 2));
+          cube.style.transition = 'transform 1.1s cubic-bezier(0.18, 0.9, 0.32, 1.05)';
+          cube.style.transform = 'rotateX(' + x + 'deg) rotateY(' + y + 'deg)';
+        });
+        if (rollResult) rollResult.classList.add('hidden');
+        if (suggestions) suggestions.innerHTML = '';
+        if (navigator.vibrate) navigator.vibrate(60);
 
-      setTimeout(function () {
-        rolling = false;
-        if (rollBtn) rollBtn.disabled = false;
-        showResult(hand);
-      }, 1150);
+        setTimeout(function () {
+          rolling = false;
+          if (rollBtn) rollBtn.disabled = false;
+          showResult(hand);
+        }, 1150);
     }
 
     function showResult(hand) {
@@ -821,13 +830,14 @@
 
     var lastAcc = { x: 0, y: 0, z: 0 };
     var lastShake = 0;
+    var SHAKE_THRESHOLD = 12;
     function onMotion(e) {
       var acc = e.accelerationIncludingGravity || e.acceleration;
       if (!acc) return;
       var dx = acc.x - lastAcc.x, dy = acc.y - lastAcc.y, dz = acc.z - lastAcc.z;
       lastAcc = { x: acc.x, y: acc.y, z: acc.z };
       var delta = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      if (delta > 16 && Date.now() - lastShake > 1200) {
+      if (delta > SHAKE_THRESHOLD && Date.now() - lastShake > 1500) {
         lastShake = Date.now();
         roll();
       }
@@ -837,16 +847,22 @@
       if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
         DeviceMotionEvent.requestPermission().then(function (s) {
           if (s === 'granted') window.addEventListener('devicemotion', onMotion, { passive: true });
-        }).catch(function () {});
-      } else {
+          else if (shakeBtn) shakeBtn.textContent = t('shakeDenied') || 'Permission denied';
+        }).catch(function (err) {
+          if (shakeBtn) shakeBtn.textContent = (t('shakeError') || 'Shake unavailable') + (err && err.message ? '' : '');
+        });
+      } else if (typeof window.ondevicemotion !== 'undefined' || 'DeviceMotionEvent' in window) {
         window.addEventListener('devicemotion', onMotion, { passive: true });
+        if (shakeBtn) shakeBtn.classList.add('active');
+      } else {
+        if (shakeBtn) shakeBtn.textContent = t('shakeUnsupported') || 'Shake unsupported';
       }
     }
 
     function bind() {
       renderTray();
-      if (rollBtn) rollBtn.addEventListener('click', roll);
-      if (shakeBtn) shakeBtn.addEventListener('click', requestShake);
+      if (rollBtn) rollBtn.onclick = roll;
+      if (shakeBtn) shakeBtn.onclick = requestShake;
     }
 
     window.DICE = { bind: bind, roll: roll, test: function(h){ return analyze(h).filter(function(x){return x.value>0;});} }; return window.DICE;
