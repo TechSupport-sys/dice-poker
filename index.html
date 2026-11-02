@@ -77,6 +77,15 @@
       <summary data-i18n="rulesSummary">How to score combinations</summary>
       <ul id="rulesList"></ul>
     </details>
+    <div class="game-over hidden" id="gameOver" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+      <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
+      <div class="game-over-card">
+        <div class="winner-trophy" aria-hidden="true">🏆</div>
+        <h2 id="gameOverTitle" data-i18n="gameOverTitle">Game over!</h2>
+        <p id="gameOverMessage"></p>
+        <button class="primary" id="gameOverClose" data-i18n="gameOverClose">Close</button>
+      </div>
+    </div>
   </section>
 
   <footer class="foot">
@@ -84,6 +93,6 @@
   </footer>
 </div>
 
-<script src="./score.js?v=27"></script>
+<script src="./score.js?v=28"></script>
 </body>
 </html>

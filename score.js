@@ -17,6 +17,11 @@
       statusDone: 'Tap screenshot when finished',
       rulesSummary: 'How to score combinations',
       confirmNew: 'Reset the table and start a new game?',
+      gameOverTitle: 'Game over!',
+      winnerMessage: '{{name}} wins with {{score}} points!',
+      tieMessage: 'It’s a tie: {{names}} with {{score}} points!',
+      gameOverClose: 'Close',
+      zeroOffer: 'Score an unplayed category as 0',
       categoryHeader: 'Category',
       upperSection: 'Upper',
       upperHint: 'count of dice',
@@ -84,6 +89,11 @@
       statusDone: 'Тапни скріншот, коли фініш',
       rulesSummary: 'Як оцінювати комбінації',
       confirmNew: 'Скинути таблицю і почати нову гру?',
+      gameOverTitle: 'Гру завершено!',
+      winnerMessage: 'Переміг {{name}} — {{score}} очок!',
+      tieMessage: 'Нічия: {{names}} — {{score}} очок!',
+      gameOverClose: 'Закрити',
+      zeroOffer: 'Записати 0 у невикористану категорію',
       categoryHeader: 'Категорія',
       upperSection: 'Верхня',
       upperHint: 'кількість кубиків',
@@ -154,6 +164,11 @@
       statusDone: 'Тапни скриншот, когда финиш',
       rulesSummary: 'Как оценивать комбинации',
       confirmNew: 'Сбросить таблицу и начать новую игру?',
+      gameOverTitle: 'Игра окончена!',
+      winnerMessage: 'Победил {{name}} — {{score}} очков!',
+      tieMessage: 'Ничья: {{names}} — {{score}} очков!',
+      gameOverClose: 'Закрыть',
+      zeroOffer: 'Записать 0 в несыгранную категорию',
       categoryHeader: 'Категория',
       upperSection: 'Верхняя',
       upperHint: 'количество кубиков',
@@ -224,6 +239,8 @@
     { key: 'chance', type: 'number', max: 30 },
     { key: 'pokerBonus', type: 'number', max: 1000 }
   ];
+  var GAME_CATEGORIES = ROW_DEF.filter(function (row) { return row.key !== 'pokerBonus'; });
+  var GAME_CATEGORY_COUNT = GAME_CATEGORIES.length;
 
   var $ = function (id) { return document.getElementById(id); };
   var els = {
@@ -232,7 +249,8 @@
     table: $('scoreTable'), leaderboard: $('leaderboard'), tabs: $('playerTabs'),
     foot: $('netInfo'), undoBtn: $('undoBtn'), langSelect: $('langSelect'), rulesList: $('rulesList'),
     diceMode: $('diceMode'), diceStage: $('diceStage'), manualDice: $('manualDice'),
-    manualRow: $('manualRow'), manualSuggestBtn: $('manualSuggestBtn')
+    manualRow: $('manualRow'), manualSuggestBtn: $('manualSuggestBtn'),
+    gameOver: $('gameOver'), gameOverMessage: $('gameOverMessage'), confettiLayer: $('confettiLayer'), gameOverClose: $('gameOverClose')
   };
   if (!els.table) return;
 
@@ -240,6 +258,7 @@
   var lastAction = null;
   var lastScored = null;
   var lastMobile = null;
+  var gameOverShown = false;
   var lang = DEFAULT_LANG;
 
   function t(key, data) {
@@ -335,12 +354,52 @@
       var lo = 0;
       ROW_DEF.forEach(function (r) { if (!r.factor) lo += num(r.key, i); });
       var filled = 0;
-      ROW_DEF.forEach(function (r) { if (val(r.key, i) !== '') filled++; });
+      GAME_CATEGORIES.forEach(function (r) { if (val(r.key, i) !== '') filled++; });
       res.upper.push(up); res.bonus.push(bo); res.upperTotal.push(up + bo);
       res.lower.push(lo); res.grand.push(up + bo + lo); res.filled.push(filled);
     }
     res.rank = res.grand.map(function (g) { return 1 + res.grand.filter(function (x) { return x > g; }).length; });
     return res;
+  }
+
+  function checkGameComplete() {
+    if (!state || gameOverShown) return false;
+    var scores = calc(state);
+    if (!scores.filled.every(function (n) { return n >= GAME_CATEGORY_COUNT; })) return false;
+    var high = Math.max.apply(Math, scores.grand);
+    var winners = state.players.filter(function (_, i) { return scores.grand[i] === high; });
+    els.gameOverMessage.textContent = winners.length === 1
+      ? t('winnerMessage', { name: winners[0], score: high })
+      : t('tieMessage', { names: winners.join(', '), score: high });
+    if (els.confettiLayer) {
+      els.confettiLayer.innerHTML = '';
+      var colors = ['#f59e0b', '#34d399', '#60a5fa', '#f472b6', '#a78bfa', '#f87171'];
+      for (var i = 0; i < 72; i++) {
+        var piece = document.createElement('span');
+        piece.className = 'confetti-piece';
+        piece.style.left = (Math.random() * 100) + '%';
+        piece.style.setProperty('--confetti-color', colors[i % colors.length]);
+        piece.style.setProperty('--delay', (Math.random() * 1.6) + 's');
+        piece.style.setProperty('--duration', (2.8 + Math.random() * 2.2) + 's');
+        piece.style.setProperty('--drift', ((Math.random() - .5) * 35) + 'vw');
+        piece.style.setProperty('--spin', (360 + Math.random() * 1080) + 'deg');
+        els.confettiLayer.appendChild(piece);
+      }
+    }
+    gameOverShown = true;
+    if (els.gameOver) els.gameOver.classList.remove('hidden');
+    if (els.gameOverClose) els.gameOverClose.focus();
+    return true;
+  }
+
+  function closeGameComplete() {
+    if (els.gameOver) els.gameOver.classList.add('hidden');
+  }
+
+  function resetGameComplete() {
+    gameOverShown = false;
+    closeGameComplete();
+    if (els.confettiLayer) els.confettiLayer.innerHTML = '';
   }
 
   function clamp(v, min, max) { return Math.max(min, Math.min(max, Math.trunc(Number(v) || 0))); }
@@ -356,6 +415,7 @@
       if (els.undoBtn) els.undoBtn.disabled = false;
     }
     render();
+    checkGameComplete();
   }
 
   function labelCell(row) {
@@ -579,7 +639,7 @@
       btn.type = 'button';
       btn.className = 'tab' + (state.mobileIdx === i ? ' active' : '');
       var rank = c.rank[i] === 1 ? '🥇' : c.rank[i] === 2 ? '🥈' : c.rank[i] === 3 ? '🥉' : '#' + c.rank[i];
-      var filled = t('filled', { f: c.filled[i], cat: ROW_DEF.length });
+      var filled = t('filled', { f: c.filled[i], cat: GAME_CATEGORY_COUNT });
       btn.innerHTML = '<span class="tab-rank">' + rank + '</span><span class="tab-name">' + n + '</span><span class="tab-total">' + c.grand[i] + '</span><span class="tab-filled">' + filled + '</span>';
       btn.addEventListener('click', function () {
         state.mobileIdx = i;
@@ -597,7 +657,7 @@
     var mobile = isMobile();
     if (mobile) renderMobile(c); else renderDesktop(c);
     lastMobile = mobile;
-    els.title.textContent = t('gameTitle', { n: state.players.length, cat: ROW_DEF.length });
+    els.title.textContent = t('gameTitle', { n: state.players.length, cat: GAME_CATEGORY_COUNT });
     renderTabs(c);
     renderLeaderboard(c);
     if (els.leaderboard) els.leaderboard.style.display = mobile ? 'none' : '';
@@ -620,7 +680,7 @@
         if (window.DICE) window.DICE.refreshSuggestions();
       });
       var rank = p.rank === 1 ? '🥇' : p.rank === 2 ? '🥈' : p.rank === 3 ? '🥉' : '#' + p.rank;
-      var filled = t('filled', { f: p.filled, cat: ROW_DEF.length });
+      var filled = t('filled', { f: p.filled, cat: GAME_CATEGORY_COUNT });
       chip.innerHTML = '<span class="lb-rank">' + rank + '</span><span class="lb-name">' + p.name + '</span><span class="lb-total">' + p.total + '</span><span class="lb-filled">' + filled + '</span>';
       wrap.appendChild(chip);
     });
@@ -629,6 +689,7 @@
 
   function undo() {
     if (!lastAction || !state) return;
+    resetGameComplete();
     state.scores[lastAction.rowKey][lastAction.idx] = lastAction.from;
     lastAction = null;
     lastScored = null;
@@ -638,6 +699,7 @@
 
   function openGame(st) {
     state = st;
+    resetGameComplete();
     state.mobileIdx = 0;
     if (typeof state.diceMode !== 'boolean') state.diceMode = true;
     els.setup.classList.add('hidden');
@@ -678,9 +740,11 @@
 
   $('playerCount').addEventListener('change', nameFields);
   $('createBtn').addEventListener('click', createGame);
+  if (els.gameOverClose) els.gameOverClose.addEventListener('click', closeGameComplete);
   $('newGameBtn').addEventListener('click', function () {
     if (!confirm(t('confirmNew'))) return;
     state = null;
+    resetGameComplete();
     lastAction = null;
     lastScored = null;
     if (window.DICE) window.DICE.reset();
@@ -842,11 +906,12 @@
         if (rollActions) rollActions.classList.remove('hidden');
         if (manualDice) manualDice.classList.add('hidden');
       } else {
+        diceStage.classList.add('hidden');
         diceStage.classList.add('manual');
         if (tray) tray.classList.add('hidden');
         if (diceMeta) diceMeta.classList.add('hidden');
         if (rollActions) rollActions.classList.add('hidden');
-        if (manualDice) manualDice.classList.remove('hidden');
+        if (manualDice) manualDice.classList.add('hidden');
       }
     }
 
@@ -873,7 +938,7 @@
     }
 
     function toggleHold(idx) {
-      if (!turnState || turnState.currentRoll === 0) return;
+      if (!turnState || turnState.currentRoll === 0 || turnState.currentRoll >= MAX_ROLLS || rolling) return;
       turnState.held[idx] = !turnState.held[idx];
       applyHeldVisuals();
     }
@@ -911,7 +976,7 @@
         sortTray();
         showResult(activeTurn.values);
         rolling = false;
-        if (rollBtn) rollBtn.disabled = false;
+        if (rollBtn) rollBtn.disabled = activeTurn.currentRoll >= MAX_ROLLS;
       }, 900);
     }
 
@@ -944,27 +1009,62 @@
       var opts = analyze(hand).filter(function (o) {
         return o.value > 0 && state.scores[o.key] && state.scores[o.key][selectedIdx] === '';
       }).sort(function (a, b) { return b.value - a.value; });
-      if (opts.length === 0) { suggestions.textContent = t('suggestNone'); return; }
-
-      var title = document.createElement('div');
-      title.className = 'suggest-title';
-      title.textContent = t('suggestTitle');
-      suggestions.appendChild(title);
-      opts.forEach(function (o) {
-        var b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'suggest-btn';
-        b.textContent = o.upper ? (o.label + ' · ' + o.count + ' × ' + o.face + ' = ' + o.value) : (o.label + ' · ' + o.value);
-        b.addEventListener('click', function () {
-          if (!state) return;
-          var targetIdx = state.mobileIdx || 0;
-          var cur = state.scores[o.key][targetIdx];
-          if (cur !== '') return;
-          setCell(o.key, targetIdx, String(o.upper ? o.count : o.value), true);
-          nextPlayer(targetIdx);
+      if (opts.length === 0) {
+        var none = document.createElement('div');
+        none.className = 'suggest-none';
+        none.textContent = t('suggestNone');
+        suggestions.appendChild(none);
+      } else {
+        var title = document.createElement('div');
+        title.className = 'suggest-title';
+        title.textContent = t('suggestTitle');
+        suggestions.appendChild(title);
+        opts.forEach(function (o) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'suggest-btn';
+          b.textContent = o.upper ? (o.label + ' · ' + o.count + ' × ' + o.face + ' = ' + o.value) : (o.label + ' · ' + o.value);
+          b.addEventListener('click', function () {
+            if (!state) return;
+            var targetIdx = state.mobileIdx || 0;
+            if (state.scores[o.key][targetIdx] !== '') return;
+            setCell(o.key, targetIdx, String(o.upper ? o.count : o.value), true);
+            if (!gameOverShown) nextPlayer(targetIdx);
+          });
+          suggestions.appendChild(b);
         });
-        suggestions.appendChild(b);
+      }
+
+      var zeroRows = GAME_CATEGORIES.filter(function (row) {
+        return state.scores[row.key] && state.scores[row.key][selectedIdx] === '';
       });
+      if (zeroRows.length) {
+        var zeroToggle = document.createElement('button');
+        zeroToggle.type = 'button';
+        zeroToggle.className = 'suggest-btn zero-option-toggle';
+        zeroToggle.textContent = t('zeroOffer');
+        var zeroList = document.createElement('div');
+        zeroList.className = 'zero-options' + (opts.length ? ' hidden' : '');
+        zeroToggle.addEventListener('click', function () {
+          zeroList.classList.toggle('hidden');
+        });
+        suggestions.appendChild(zeroToggle);
+        zeroRows.forEach(function (row) {
+          var zeroButton = document.createElement('button');
+          zeroButton.type = 'button';
+          zeroButton.className = 'suggest-btn';
+          zeroButton.textContent = rowLabel(row.key) + ' · 0';
+          zeroButton.addEventListener('click', function () {
+            if (!state) return;
+            var targetIdx = state.mobileIdx || 0;
+            if (state.scores[row.key][targetIdx] !== '') return;
+            setCell(row.key, targetIdx, '0', true);
+            if (!gameOverShown) nextPlayer(targetIdx);
+          });
+          zeroList.appendChild(zeroButton);
+        });
+        suggestions.appendChild(zeroList);
+      }
     }
 
     function createResultPip(n, idx) {

@@ -260,6 +260,17 @@ td.score-just-entered .seg-btn.active,td.score-just-entered .pip.active,td.score
   .tab{min-width:78px;padding:8px 10px;scroll-snap-align:start}
   .tab-name{font-size:11px}
 }
-@media (min-width:1200px){
-  .app{max-width:1600px}
-}
+@keyframes confetti-fall{0%{transform:translate3d(0,-12vh,0) rotate(0)}100%{transform:translate3d(var(--drift),110vh,0) rotate(var(--spin))}}
+.game-over{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;overflow:hidden;padding:20px;background:rgba(2,6,23,.82);backdrop-filter:blur(6px)}
+.game-over-card{position:relative;z-index:2;width:min(440px,100%);padding:30px 24px;text-align:center;border:1px solid rgba(245,158,11,.5);border-radius:22px;background:linear-gradient(155deg,#172033,#0b1220);box-shadow:0 20px 80px rgba(0,0,0,.55),0 0 35px rgba(245,158,11,.12);animation:winner-pop .45s cubic-bezier(.2,.85,.25,1.2) both}
+@keyframes winner-pop{from{opacity:0;transform:translateY(24px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1)}}
+.winner-trophy{font-size:56px;line-height:1.1;animation:trophy-bounce .8s ease-in-out .25s both}
+@keyframes trophy-bounce{0%{transform:scale(.6) rotate(-15deg)}60%{transform:scale(1.18) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
+.game-over-card h2{margin:12px 0 8px;color:var(--accent);font-size:28px}
+.game-over-card p{margin:0 0 22px;color:var(--txt2);font-size:18px;font-weight:700}
+.confetti-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.confetti-piece{position:absolute;top:-14px;width:9px;height:15px;border-radius:2px;background:var(--confetti-color);animation:confetti-fall var(--duration) linear var(--delay) 1 both;will-change:transform}
+.zero-options{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.zero-options .suggest-btn{border-style:dashed;opacity:.9}
+@media(prefers-reduced-motion:reduce){.game-over-card,.winner-trophy,.confetti-piece{animation:none!important}}
+@media (min-width:1200px){.app{max-width:1600px}}
