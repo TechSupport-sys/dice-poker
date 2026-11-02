@@ -15,6 +15,7 @@
       undoBtn: '↩ Undo',
       newGameBtn: 'New',
       statusDone: 'Tap screenshot when finished',
+      rulesSummary: 'How to score combinations',
       confirmNew: 'Reset the table and start a new game?',
       categoryHeader: 'Category',
       upperSection: 'Upper',
@@ -38,6 +39,11 @@
         '<b>Yahtzee (5 of a kind)</b> — five identical dice; 50 points. Each additional Yahtzee adds +100.',
         '<b>Chance</b> — sum of any five dice.'
       ],
+      rollBtn: '🎲 Roll dice',
+      shakeBtn: '📳 Shake to roll',
+      suggestTitle: 'Suggestions for current player',
+      suggestNone: 'No scoring matches this roll.',
+      overwritePrompt: '{{row}} already has a score. Overwrite?',
       rows: {
         ones: ['Aces', '× 1'],
         twos: ['Twos', '× 2'],
@@ -67,6 +73,7 @@
       undoBtn: '↩ Скасувати',
       newGameBtn: 'Нова',
       statusDone: 'Тапни скріншот, коли фініш',
+      rulesSummary: 'Як оцінювати комбінації',
       confirmNew: 'Скинути таблицю і почати нову гру?',
       categoryHeader: 'Категорія',
       upperSection: 'Верхня',
@@ -90,6 +97,11 @@
         '<b>Яцзи (5 в однакових)</b> — п’ять однакових кубиків; 50 очків. Кожен наступний Яцзи — +100.',
         '<b>Шанс</b> — сума будь-яких п’яти кубиків.'
       ],
+      rollBtn: '🎲 Кинути кубики',
+      shakeBtn: '📳 Трясти',
+      suggestTitle: 'Пропозиції для активного гравця',
+      suggestNone: 'Немає підходящої комбінації.',
+      overwritePrompt: 'У {{row}} вже є очки. Перезаписати?',
       rows: {
         ones: ['Одиниці', '× 1'],
         twos: ['Двійки', '× 2'],
@@ -119,6 +131,7 @@
       undoBtn: '↩ Отмена',
       newGameBtn: 'Новая',
       statusDone: 'Тапни скриншот, когда финиш',
+      rulesSummary: 'Как оценивать комбинации',
       confirmNew: 'Сбросить таблицу и начать новую игру?',
       categoryHeader: 'Категория',
       upperSection: 'Верхняя',
@@ -142,6 +155,11 @@
         '<b>Яхцзы (покер / 5 одинаковых)</b> — пять одинаковых кубиков; 50 очков. Каждый следующий Яхцзы — бонус +100.',
         '<b>Шанс</b> — сумма любых пяти кубиков.'
       ],
+      rollBtn: '🎲 Бросить кубики',
+      shakeBtn: '📳 Трясти',
+      suggestTitle: 'Варианты для активного игрока',
+      suggestNone: 'Нет подходящей комбинации.',
+      overwritePrompt: 'В {{row}} уже есть очки. Перезаписать?',
       rows: {
         ones: ['Единицы', '× 1'],
         twos: ['Двойки', '× 2'],
@@ -621,6 +639,187 @@
   if (els.undoBtn) els.undoBtn.addEventListener('click', undo);
   if (els.langSelect) els.langSelect.addEventListener('change', function () { setLang(els.langSelect.value); });
 
+
+  // ---- Virtual 3D dice roller (CSS 3D + vanilla JS) ----
+  var DICE = (function () {
+    var tray = document.getElementById('diceTray');
+    var resultDice = document.getElementById('resultDice');
+    var suggestions = document.getElementById('suggestions');
+    var rollResult = document.getElementById('rollResult');
+    var rollBtn = document.getElementById('rollBtn');
+    var shakeBtn = document.getElementById('shakeBtn');
+
+    var DICE_COUNT = 5;
+    var FACE = { // rotateX, rotateY to bring face to front
+      1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, -180]
+    };
+
+    function createDie() {
+      var s = document.createElement('div');
+      s.className = 'die-scene';
+      var c = document.createElement('div');
+      c.className = 'die';
+      [1, 2, 3, 4, 5, 6].forEach(function (n) {
+        var f = document.createElement('div');
+        f.className = 'face f' + n;
+        f.setAttribute('data-face', n);
+        c.appendChild(f);
+      });
+      s.appendChild(c);
+      return { scene: s, cube: c };
+    }
+
+    function renderTray() {
+      if (!tray) return;
+      tray.innerHTML = '';
+      for (var i = 0; i < DICE_COUNT; i++) {
+        var d = createDie();
+        tray.appendChild(d.scene);
+      }
+    }
+
+    function createResultPip(n) {
+      var el = document.createElement('span');
+      el.className = 'pip-result p' + n;
+      el.textContent = n;
+      return el;
+    }
+
+    function count(hand) {
+      var c = {};
+      hand.forEach(function (v) { c[v] = (c[v] || 0) + 1; });
+      return c;
+    }
+
+    function sum(hand) { return hand.reduce(function (a, b) { return a + b; }, 0); }
+
+    function hasSequence(hand, len) {
+      var u = {};
+      hand.forEach(function (v) { u[v] = 1; });
+      var keys = Object.keys(u).map(Number).sort(function (a, b) { return a - b; });
+      var seq = 1, best = 1;
+      for (var i = 1; i < keys.length; i++) {
+        if (keys[i] === keys[i - 1] + 1) { seq++; best = Math.max(best, seq); }
+        else { seq = 1; }
+      }
+      return best >= len;
+    }
+
+    function analyze(hand) {
+      var c = count(hand);
+      var maxCount = 0; for (var k in c) if (c[k] > maxCount) maxCount = c[k];
+      var s = sum(hand);
+      var res = [];
+      // upper matches
+      [1, 2, 3, 4, 5, 6].forEach(function (v) {
+        if (c[v]) res.push({ key: 'ones,twos,threes,fours,fives,sixes'.split(',')[v - 1], label: I18N[lang].rows[v === 1 ? 'ones' : v === 2 ? 'twos' : v === 3 ? 'threes' : v === 4 ? 'fours' : v === 5 ? 'fives' : 'sixes'][0], value: c[v] * v });
+      });
+      res.push({ key: 'threeKind', label: I18N[lang].rows.threeKind[0], value: maxCount >= 3 ? s : 0 });
+      res.push({ key: 'fourKind', label: I18N[lang].rows.fourKind[0], value: maxCount >= 4 ? s : 0 });
+      res.push({ key: 'fullHouse', label: I18N[lang].rows.fullHouse[0], value: maxCount === 3 ? 25 : 0 });
+      res.push({ key: 'smallStraight', label: I18N[lang].rows.smallStraight[0], value: hasSequence(hand, 4) ? 30 : 0 });
+      res.push({ key: 'largeStraight', label: I18N[lang].rows.largeStraight[0], value: hasSequence(hand, 5) ? 40 : 0 });
+      res.push({ key: 'poker', label: I18N[lang].rows.poker[0], value: maxCount >= 5 ? 50 : 0 });
+      res.push({ key: 'chance', label: I18N[lang].rows.chance[0], value: s });
+      return res;
+    }
+
+    var rolling = false;
+    function roll() {
+      if (rolling || !tray) return;
+      rolling = true;
+      if (rollBtn) rollBtn.disabled = true;
+      var hand = [];
+      var dice = Array.prototype.slice.call(tray.querySelectorAll('.die'));
+      dice.forEach(function (cube, i) {
+        var v = 1 + Math.floor(Math.random() * 6);
+        hand.push(v);
+        var turns = 2 + Math.floor(Math.random() * 2);
+        var [x0, y0] = FACE[v];
+        var x = x0 + 360 * turns;
+        var y = y0 + 360 * (2 + Math.floor(Math.random() * 2));
+        // random tumble axis for visual chaos
+        cube.style.transition = 'transform 1.1s cubic-bezier(0.18, 0.9, 0.32, 1.05)';
+        cube.style.transform = 'rotateX(' + x + 'deg) rotateY(' + y + 'deg)';
+      });
+      if (rollResult) rollResult.classList.add('hidden');
+      if (suggestions) suggestions.innerHTML = '';
+      if (navigator.vibrate) navigator.vibrate(60);
+
+      setTimeout(function () {
+        rolling = false;
+        if (rollBtn) rollBtn.disabled = false;
+        showResult(hand);
+      }, 1150);
+    }
+
+    function showResult(hand) {
+      if (!resultDice) return;
+      resultDice.innerHTML = '';
+      hand.forEach(function (v) { resultDice.appendChild(createResultPip(v)); });
+      if (rollResult) rollResult.classList.remove('hidden');
+      var opts = analyze(hand).filter(function (o) { return o.value > 0; }).sort(function (a, b) { return b.value - a.value; });
+      if (!suggestions) return;
+      suggestions.innerHTML = '';
+      if (opts.length === 0) { suggestions.textContent = t('suggestNone'); return; }
+      var title = document.createElement('div');
+      title.className = 'suggest-title';
+      title.textContent = t('suggestTitle');
+      suggestions.appendChild(title);
+      opts.forEach(function (o) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'suggest-btn';
+        b.textContent = o.label + ' · ' + o.value;
+        b.addEventListener('click', function () {
+          if (!state) return;
+          // mobile: apply to current player; desktop: need to pick a player index
+          var idx = isMobile() ? (state.mobileIdx || 0) : 0;
+          var cur = state.scores[o.key][idx];
+          if (cur !== '') { if (!confirm(t('overwritePrompt', { row: o.label }))) return; }
+          setCell(o.key, idx, String(o.value));
+        });
+        suggestions.appendChild(b);
+      });
+    }
+
+    var lastAcc = { x: 0, y: 0, z: 0 };
+    var lastShake = 0;
+    function onMotion(e) {
+      var acc = e.accelerationIncludingGravity || e.acceleration;
+      if (!acc) return;
+      var dx = acc.x - lastAcc.x, dy = acc.y - lastAcc.y, dz = acc.z - lastAcc.z;
+      lastAcc = { x: acc.x, y: acc.y, z: acc.z };
+      var delta = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (delta > 16 && Date.now() - lastShake > 1200) {
+        lastShake = Date.now();
+        roll();
+      }
+    }
+
+    function requestShake() {
+      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission().then(function (s) {
+          if (s === 'granted') window.addEventListener('devicemotion', onMotion, { passive: true });
+        }).catch(function () {});
+      } else {
+        window.addEventListener('devicemotion', onMotion, { passive: true });
+      }
+    }
+
+    function bind() {
+      renderTray();
+      if (rollBtn) rollBtn.addEventListener('click', roll);
+      if (shakeBtn) shakeBtn.addEventListener('click', requestShake);
+    }
+
+    return { bind: bind, roll: roll };
+  })();
+
+  // bind dice after creating game so tray exists; also bind once on init
+  var originalOpenGame = openGame;
+  openGame = function (st) { originalOpenGame(st); DICE.bind(); };
+  DICE.bind();
   renderLabels();
   nameFields();
   setStatus('');

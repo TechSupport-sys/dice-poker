@@ -1,26 +1,43 @@
-# Dice Poker Scorecard
+# Dice Poker
 
-A simple, mobile-first web scorecard for dice poker (Yahtzee-style). No accounts, no tracking, no server — scores live only in the current browser tab.
+A lightweight, static browser scorecard for Yahtzee-style dice games. No server, no storage, no accounts — just open the page, play, and screenshot the result.
 
-## Play
+Live: https://dice.fvn-net.org
 
-Open [https://dice.fvn-net.org](https://dice.fvn-net.org) on your phone, tablet or desktop, pick the number of players, enter names and start scoring.
+## How to play
 
-Languages: English, Ukrainian, Russian.
+1. Choose the number of players (2–12) and enter names.
+2. Tap **Roll dice** to roll five virtual 3D dice. On mobile, you can also enable **Shake to roll**.
+3. Enter the score into one of the categories, or tap a suggested combination.
+4. Fill all categories to finish. The leaderboard and ranking update automatically.
+5. Take a screenshot — scores are not saved anywhere.
 
-## Rules
+## Scoring (official Yahtzee / Hasbro)
 
-- **Upper section** — enter how many dice of each face you rolled (0–5). Score = count × face. 63+ gives a +35 bonus.
-- **Three of a kind** — sum of all five dice.
-- **Small 4 of a kind** — four identical dice; sum of all five dice.
-- **Full house** — 25 points.
-- **Large 5 of a kind** — 50 points.
-- **Chance** — sum of any five dice.
-- **Poker bonus** — +100 for each additional five-of-a-kind.
+| Category | Rule | Points |
+|---|---|---|
+| Aces, Twos, Threes, Fours, Fives, Sixes | Count of dice with that face | count × face |
+| Bonus | Upper section total ≥ 63 | +35 |
+| 3 of a kind | Three or more equal dice | sum of all five dice |
+| 4 of a kind | Four or more equal dice | sum of all five dice |
+| Full house | Three of one face and two of another | 25 |
+| Small straight | 4 dice in a row (1-2-3-4, 2-3-4-5 or 3-4-5-6) | 30 |
+| Large straight | 5 dice in a row (1-2-3-4-5 or 2-3-4-5-6) | 40 |
+| Yahtzee | 5 equal dice | 50 |
+| Yahtzee bonus | Every additional Yahtzee | +100 |
+| Chance | Any roll | sum of all five dice |
+
+## Languages
+
+- English (default)
+- Українська
+- Русский
+
+Switch via the dropdown in the top-right corner.
 
 ## Tech
 
-Pure static HTML/CSS/JS. No build step, no server. Deployed to `/var/www/dice-poker` on an Apache vhost.
+Static HTML/CSS/JS. No build step, no external libraries, no network calls. Works offline.
 
 ## License
 
