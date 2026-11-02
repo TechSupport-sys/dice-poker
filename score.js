@@ -448,7 +448,7 @@
         wrap.appendChild(b);
       });
       var inp = document.createElement('input');
-      inp.className = 'num-input';
+      inp.className = 'num-input' + (cur !== '' ? ' recorded-score' : '');
       inp.type = 'number'; inp.inputMode = 'numeric';
       inp.min = '0'; inp.max = String(maxFor(row)); inp.value = cur;
       inp.addEventListener('change', function () {

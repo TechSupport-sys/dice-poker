@@ -142,6 +142,7 @@ td.score-just-entered .seg-btn.active,td.score-just-entered .pip.active,td.score
 .num-input{
   width:68px;height:44px;padding:0 6px;text-align:center;font-size:15px;border-radius:8px;margin:0
 }
+.num-input.recorded-score{border:1px solid var(--accent);background:rgba(245,158,11,.2);color:var(--accent);font-weight:800;box-shadow:0 0 0 2px rgba(245,158,11,.22)}
 
 /* rules */
 .rules{margin-top:12px}
