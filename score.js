@@ -606,7 +606,6 @@
   function renderLeaderboard(c) {
     if (!els.leaderboard) return;
     var pairs = state.players.map(function (n, i) { return { name: n, total: c.grand[i], rank: c.rank[i], filled: c.filled[i], idx: i }; });
-    pairs.sort(function (a, b) { return b.total - a.total || a.idx - b.idx; });
     els.leaderboard.innerHTML = '';
     var wrap = document.createElement('div');
     wrap.className = 'lb-list';
