@@ -472,21 +472,13 @@
     state.players.forEach(function (n, i) {
       var th = document.createElement('th');
       var rankCls = c.rank[i] === 1 ? 'gold' : c.rank[i] === 2 ? 'silver' : c.rank[i] === 3 ? 'bronze' : '';
-      var selector = document.createElement('button');
-      selector.type = 'button';
-      selector.className = 'player-head player-head-select' + (state.mobileIdx === i ? ' active' : '');
-      selector.setAttribute('aria-pressed', state.mobileIdx === i ? 'true' : 'false');
-      selector.setAttribute('aria-label', 'Select player ' + n + ', score ' + c.grand[i]);
-      selector.innerHTML = '<span class="player-name">' + n + '</span>' +
+      th.innerHTML = '<div class="player-head' + (state.mobileIdx === i ? ' active' : '') + '">' +
+        '<span class="player-name">' + n + '</span>' +
         '<span class="player-meta ' + rankCls + '">' +
           '<span class="ph-rank">' + c.rank[i] + '</span>' +
           '<span class="ph-total">' + c.grand[i] + '</span>' +
-        '</span>';
-      selector.addEventListener('click', function () {
-        state.mobileIdx = i;
-        render();
-      });
-      th.appendChild(selector);
+        '</span>' +
+      '</div>';
       hr.appendChild(th);
     });
     thead.appendChild(hr);
@@ -624,8 +616,14 @@
     var wrap = document.createElement('div');
     wrap.className = 'lb-list';
     pairs.forEach(function (p) {
-      var chip = document.createElement('div');
-      chip.className = 'lb-chip';
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'lb-chip' + (state.mobileIdx === p.idx ? ' active' : '');
+      chip.setAttribute('aria-pressed', state.mobileIdx === p.idx ? 'true' : 'false');
+      chip.addEventListener('click', function () {
+        state.mobileIdx = p.idx;
+        render();
+      });
       var rank = p.rank === 1 ? '🥇' : p.rank === 2 ? '🥈' : p.rank === 3 ? '🥉' : '#' + p.rank;
       var filled = t('filled', { f: p.filled, cat: ROW_DEF.length });
       chip.innerHTML = '<span class="lb-rank">' + rank + '</span><span class="lb-name">' + p.name + '</span><span class="lb-total">' + p.total + '</span><span class="lb-filled">' + filled + '</span>';
