@@ -813,7 +813,7 @@
       if (shakeBtn) shakeBtn.addEventListener('click', requestShake);
     }
 
-    return { bind: bind, roll: roll };
+    window.DICE = { bind: bind, roll: roll }; return window.DICE;
   })();
 
   // bind dice after creating game so tray exists; also bind once on init
