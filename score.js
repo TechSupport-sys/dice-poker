@@ -842,34 +842,37 @@
       suggestions.innerHTML = '';
       if (opts.length === 0) { suggestions.textContent = t('suggestNone'); return; }
 
-      var playerBar = document.createElement('div');
-      playerBar.className = 'suggest-player-bar';
-      var playerLabel = document.createElement('span');
-      playerLabel.className = 'suggest-player-label';
-      playerLabel.textContent = t('suggestPlayer');
-      playerBar.appendChild(playerLabel);
+      var mobile = isMobile();
+      var selectedIdx = mobile ? (state.mobileIdx || 0) : 0;
 
-      var defaultIdx = isMobile() ? (state.mobileIdx || 0) : 0;
-      var selectedIdx = defaultIdx;
-      var playerChips = document.createElement('div');
-      playerChips.className = 'player-chips';
-      function renderChips() {
-        playerChips.innerHTML = '';
-        state.players.forEach(function (name, i) {
-          var chip = document.createElement('button');
-          chip.type = 'button';
-          chip.className = 'player-chip' + (i === selectedIdx ? ' active' : '');
-          chip.textContent = name;
-          chip.addEventListener('click', function () {
-            selectedIdx = i;
-            renderChips();
+      if (!mobile) {
+        var playerBar = document.createElement('div');
+        playerBar.className = 'suggest-player-bar';
+        var playerLabel = document.createElement('span');
+        playerLabel.className = 'suggest-player-label';
+        playerLabel.textContent = t('suggestPlayer');
+        playerBar.appendChild(playerLabel);
+
+        var playerChips = document.createElement('div');
+        playerChips.className = 'player-chips';
+        function renderChips() {
+          playerChips.innerHTML = '';
+          state.players.forEach(function (name, i) {
+            var chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'player-chip' + (i === selectedIdx ? ' active' : '');
+            chip.textContent = name;
+            chip.addEventListener('click', function () {
+              selectedIdx = i;
+              renderChips();
+            });
+            playerChips.appendChild(chip);
           });
-          playerChips.appendChild(chip);
-        });
+        }
+        renderChips();
+        playerBar.appendChild(playerChips);
+        suggestions.appendChild(playerBar);
       }
-      renderChips();
-      playerBar.appendChild(playerChips);
-      suggestions.appendChild(playerBar);
 
       var title = document.createElement('div');
       title.className = 'suggest-title';
