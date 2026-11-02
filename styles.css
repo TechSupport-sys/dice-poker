@@ -154,45 +154,45 @@ td.calc.rank{color:var(--accent);font-weight:800}
 @keyframes dieWobble{0%{transform:rotateX(-22deg) rotateY(-28deg)}50%{transform:rotateX(-12deg) rotateY(-18deg)}100%{transform:rotateX(-32deg) rotateY(-38deg)}}
 .face{position:absolute;width:56px;height:56px;background:#e2e8f0;border:1px solid #94a3b8;border-radius:10px;transform-style:preserve-3d;backface-visibility:hidden}
 /* dots via background radial gradients (always centered) */
-.f1{background:radial-gradient(circle at 50% 50%, #0f172a 22%, transparent 24%),#e2e8f0}
+.f1{background:radial-gradient(circle at 50% 50%, #0f172a 18%, transparent 22%),#e2e8f0}
 .f2{
   background:
-    radial-gradient(circle at 70% 30%, #0f172a 14%, transparent 16%),
-    radial-gradient(circle at 30% 70%, #0f172a 14%, transparent 16%),
+    radial-gradient(circle at 70% 30%, #0f172a 10%, transparent 13%),
+    radial-gradient(circle at 30% 70%, #0f172a 10%, transparent 13%),
     #e2e8f0
 }
 .f3{
   background:
-    radial-gradient(circle at 72% 28%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 50% 50%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 28% 72%, #0f172a 13%, transparent 15%),
+    radial-gradient(circle at 72% 28%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 50% 50%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 28% 72%, #0f172a 9%, transparent 12%),
     #e2e8f0
 }
 .f4{
   background:
-    radial-gradient(circle at 72% 28%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 28% 28%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 72% 72%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 28% 72%, #0f172a 13%, transparent 15%),
+    radial-gradient(circle at 72% 28%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 28% 28%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 72% 72%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 28% 72%, #0f172a 9%, transparent 12%),
     #e2e8f0
 }
 .f5{
   background:
-    radial-gradient(circle at 72% 28%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 28% 28%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 50% 50%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 72% 72%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 28% 72%, #0f172a 13%, transparent 15%),
+    radial-gradient(circle at 72% 28%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 28% 28%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 50% 50%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 72% 72%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 28% 72%, #0f172a 9%, transparent 12%),
     #e2e8f0
 }
 .f6{
   background:
-    radial-gradient(circle at 72% 25%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 28% 25%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 72% 50%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 28% 50%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 72% 75%, #0f172a 13%, transparent 15%),
-    radial-gradient(circle at 28% 75%, #0f172a 13%, transparent 15%),
+    radial-gradient(circle at 72% 25%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 28% 25%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 72% 50%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 28% 50%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 72% 75%, #0f172a 9%, transparent 12%),
+    radial-gradient(circle at 28% 75%, #0f172a 9%, transparent 12%),
     #e2e8f0
 }
 /* face positions */
