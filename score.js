@@ -778,17 +778,26 @@
       playerLabel.textContent = t('suggestPlayer');
       playerBar.appendChild(playerLabel);
 
-      var select = document.createElement('select');
-      select.className = 'suggest-player-select';
-      select.id = 'suggestPlayerSelect';
-      state.players.forEach(function (name, i) {
-        var o = document.createElement('option');
-        o.value = String(i);
-        o.textContent = name;
-        if ((!isMobile() && i === 0) || (isMobile() && i === (state.mobileIdx || 0))) o.selected = true;
-        select.appendChild(o);
-      });
-      playerBar.appendChild(select);
+      var defaultIdx = isMobile() ? (state.mobileIdx || 0) : 0;
+      var selectedIdx = defaultIdx;
+      var playerChips = document.createElement('div');
+      playerChips.className = 'player-chips';
+      function renderChips() {
+        playerChips.innerHTML = '';
+        state.players.forEach(function (name, i) {
+          var chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'player-chip' + (i === selectedIdx ? ' active' : '');
+          chip.textContent = name;
+          chip.addEventListener('click', function () {
+            selectedIdx = i;
+            renderChips();
+          });
+          playerChips.appendChild(chip);
+        });
+      }
+      renderChips();
+      playerBar.appendChild(playerChips);
       suggestions.appendChild(playerBar);
 
       var title = document.createElement('div');
@@ -802,11 +811,9 @@
         b.textContent = o.label + ' · ' + o.value;
         b.addEventListener('click', function () {
           if (!state) return;
-          var sel = document.getElementById('suggestPlayerSelect');
-          var idx = sel ? Number(sel.value) : (isMobile() ? (state.mobileIdx || 0) : 0);
-          var cur = state.scores[o.key][idx];
+          var cur = state.scores[o.key][selectedIdx];
           if (cur !== '') { if (!confirm(t('overwritePrompt', { row: o.label }))) return; }
-          setCell(o.key, idx, String(o.value));
+          setCell(o.key, selectedIdx, String(o.value));
         });
         suggestions.appendChild(b);
       });
