@@ -793,7 +793,14 @@
       var s = sum(hand);
       var res = [];
       [1, 2, 3, 4, 5, 6].forEach(function (v) {
-        if (c[v]) res.push({ key: 'ones,twos,threes,fours,fives,sixes'.split(',')[v - 1], label: I18N[lang].rows[v === 1 ? 'ones' : v === 2 ? 'twos' : v === 3 ? 'threes' : v === 4 ? 'fours' : v === 5 ? 'fives' : 'sixes'][0], value: c[v] * v });
+        if (c[v]) res.push({
+          key: 'ones,twos,threes,fours,fives,sixes'.split(',')[v - 1],
+          label: I18N[lang].rows[v === 1 ? 'ones' : v === 2 ? 'twos' : v === 3 ? 'threes' : v === 4 ? 'fours' : v === 5 ? 'fives' : 'sixes'][0],
+          value: c[v] * v,
+          count: c[v],
+          face: v,
+          upper: true
+        });
       });
       res.push({ key: 'threeKind', label: I18N[lang].rows.threeKind[0], value: maxCount >= 3 ? s : 0 });
       res.push({ key: 'fourKind', label: I18N[lang].rows.fourKind[0], value: maxCount >= 4 ? s : 0 });
@@ -927,13 +934,13 @@
         var b = document.createElement('button');
         b.type = 'button';
         b.className = 'suggest-btn';
-        b.textContent = o.label + ' · ' + o.value;
+        b.textContent = o.upper ? (o.label + ' · ' + o.count + ' × ' + o.face + ' = ' + o.value) : (o.label + ' · ' + o.value);
         b.addEventListener('click', function () {
           if (!state) return;
           var targetIdx = state.mobileIdx || 0;
           var cur = state.scores[o.key][targetIdx];
           if (cur !== '') return;
-          setCell(o.key, targetIdx, String(o.value), true);
+          setCell(o.key, targetIdx, String(o.upper ? o.count : o.value), true);
           nextPlayer(targetIdx);
         });
         suggestions.appendChild(b);
