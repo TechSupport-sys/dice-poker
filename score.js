@@ -746,10 +746,6 @@
       tray.innerHTML = '';
       for (var i = 0; i < DICE_COUNT; i++) {
         var d = createDie(i);
-        (function (idx) {
-          d.scene.addEventListener('click', function (e) { e.preventDefault(); toggleHold(idx); });
-          d.scene.addEventListener('touchstart', function (e) { e.preventDefault(); toggleHold(idx); });
-        })(i);
         tray.appendChild(d.scene);
       }
       if (!turnState) resetTurn();
@@ -894,7 +890,11 @@
       var sortedHeld = order.map(function (i) { return turnState.held[i]; });
       turnState.values = sortedValues;
       turnState.held = sortedHeld;
-      order.forEach(function (i) { tray.appendChild(scenes[i]); });
+      order.forEach(function (oldIndex, newIndex) {
+        var scene = scenes[oldIndex];
+        scene.setAttribute('data-idx', String(newIndex));
+        tray.appendChild(scene);
+      });
       applyHeldVisuals();
     }
 
@@ -1027,6 +1027,21 @@
       }
       if (shakeBtn) shakeBtn.onclick = requestShake;
       if (manualSuggestBtn) manualSuggestBtn.onclick = manualSuggest;
+      if (tray) {
+        tray.onclick = function (e) {
+          var scene = e.target.closest('.die-scene');
+          if (!scene) return;
+          var idx = Number(scene.getAttribute('data-idx'));
+          toggleHold(idx);
+        };
+        tray.ontouchstart = function (e) {
+          var scene = e.target.closest('.die-scene');
+          if (!scene) return;
+          e.preventDefault();
+          var idx = Number(scene.getAttribute('data-idx'));
+          toggleHold(idx);
+        };
+      }
     }
 
     window.DICE = { bind: bind, start: startRolling, stop: null, reset: resetTurn, setMode: setDiceMode, test: function(h){ return analyze(h).filter(function(x){return x.value>0;});} };
