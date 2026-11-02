@@ -578,6 +578,7 @@
       btn.innerHTML = '<span class="tab-rank">' + rank + '</span><span class="tab-name">' + n + '</span><span class="tab-total">' + c.grand[i] + '</span><span class="tab-filled">' + filled + '</span>';
       btn.addEventListener('click', function () {
         state.mobileIdx = i;
+        if (window.DICE) window.DICE.reset();
         render();
       });
       wrap.appendChild(btn);
@@ -691,7 +692,17 @@
         values: [0, 0, 0, 0, 0],
         held: [false, false, false, false, false]
       };
+      if (tray) {
+        var cubes = tray.querySelectorAll('.die');
+        for (var i = 0; i < cubes.length; i++) {
+          cubes[i].style.transition = 'transform 0.35s ease';
+          cubes[i].style.transform = 'rotateX(-22deg) rotateY(-28deg)';
+        }
+      }
+      if (rollResult) rollResult.classList.add('hidden');
+      if (suggestions) suggestions.innerHTML = '';
       updateMeta();
+      applyHeldVisuals();
     }
 
     function createDie(idx) {
@@ -900,41 +911,48 @@
       return el;
     }
 
-    var lastAcc = { x: 0, y: 0, z: 0 };
+    var lastAcc = null;
     var lastShake = 0;
-    var SHAKE_THRESHOLD = 10;
-    var SHAKE_TIMEOUT = 350;
+    var SHAKE_THRESHOLD = 7;
+    var SHAKE_DEBOUNCE = 250;
+    var SHAKE_COOLDOWN = 1500;
+    var shakeTimer = null;
+
     function onMotion(e) {
       var acc = e.accelerationIncludingGravity || e.acceleration;
-      if (!acc) return;
+      if (!acc || acc.x == null || acc.y == null || acc.z == null) return;
+      var now = Date.now();
+      if (now - lastShake < SHAKE_COOLDOWN) return;
+      if (!lastAcc) { lastAcc = { x: acc.x, y: acc.y, z: acc.z }; return; }
       var dx = acc.x - lastAcc.x, dy = acc.y - lastAcc.y, dz = acc.z - lastAcc.z;
       lastAcc = { x: acc.x, y: acc.y, z: acc.z };
       var delta = Math.sqrt(dx * dx + dy * dy + dz * dz);
       if (delta > SHAKE_THRESHOLD) {
-        lastShake = Date.now();
-        if (!turnState || turnState.currentRoll < MAX_ROLLS) startRolling();
+        if (shakeTimer) clearTimeout(shakeTimer);
+        shakeTimer = setTimeout(function () {
+          if (turnState && turnState.currentRoll < MAX_ROLLS) {
+            startRolling();
+            lastShake = Date.now();
+          }
+        }, SHAKE_DEBOUNCE);
       }
     }
-
-    var shakeCheckTimer = setInterval(function () {
-      if (turnState && turnState.currentRoll > 0 && turnState.currentRoll < MAX_ROLLS && Date.now() - lastShake > SHAKE_TIMEOUT && lastShake > 0) {
-        // shake ended before max rolls
-      }
-    }, 100);
 
     function requestShake() {
       if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
         DeviceMotionEvent.requestPermission().then(function (s) {
           if (s === 'granted') {
             window.addEventListener('devicemotion', onMotion, { passive: true });
-            if (shakeBtn) shakeBtn.classList.add('active');
-          } else if (shakeBtn) shakeBtn.textContent = t('shakeDenied') || 'Permission denied';
+            if (shakeBtn) { shakeBtn.classList.add('active'); shakeBtn.textContent = t('shakeBtn'); }
+          } else {
+            if (shakeBtn) shakeBtn.textContent = t('shakeDenied') || 'Permission denied';
+          }
         }).catch(function (err) {
-          if (shakeBtn) shakeBtn.textContent = (t('shakeError') || 'Shake unavailable') + (err && err.message ? '' : '');
+          if (shakeBtn) shakeBtn.textContent = (t('shakeError') || 'Shake unavailable') + (err && err.message ? ': ' + err.message : '');
         });
       } else if ('DeviceMotionEvent' in window) {
         window.addEventListener('devicemotion', onMotion, { passive: true });
-        if (shakeBtn) shakeBtn.classList.add('active');
+        if (shakeBtn) { shakeBtn.classList.add('active'); shakeBtn.textContent = t('shakeBtn'); }
       } else {
         if (shakeBtn) shakeBtn.textContent = t('shakeUnsupported') || 'Shake unsupported';
       }
@@ -955,7 +973,7 @@
       if (endTurnBtn) endTurnBtn.onclick = endTurn;
     }
 
-    window.DICE = { bind: bind, start: startRolling, stop: null, test: function(h){ return analyze(h).filter(function(x){return x.value>0;});} };
+    window.DICE = { bind: bind, start: startRolling, stop: null, reset: resetTurn, test: function(h){ return analyze(h).filter(function(x){return x.value>0;});} };
     return window.DICE;
   })();
   // bind dice after creating game so tray exists; also bind once on init
