@@ -40,6 +40,10 @@
         '<b>Chance</b> — sum of any five dice.'
       ],
       rollBtn: '🎲 Roll dice',
+      rollCount: 'Roll {{n}}/{{max}}',
+      heldHint: 'Tap dice to hold',
+      endTurnBtn: '✓ End turn',
+
       shakeBtn: '📳 Shake to roll',
       shakeDenied: 'Permission denied',
       shakeError: 'Shake unavailable',
@@ -102,6 +106,10 @@
         '<b>Шанс</b> — сума будь-яких п’яти кубиків.'
       ],
       rollBtn: '🎲 Кинути кубики',
+      rollCount: 'Кидок {{n}}/{{max}}',
+      heldHint: 'Тапни кубик, щоб залишити',
+      endTurnBtn: '✓ Завершити хід',
+
       shakeBtn: '📳 Трясти',
       shakeDenied: 'Доступ запрещён',
       shakeError: 'Тряска недоступна',
@@ -167,6 +175,10 @@
         '<b>Шанс</b> — сумма любых пяти кубиков.'
       ],
       rollBtn: '🎲 Бросить кубики',
+      rollCount: 'Бросок {{n}}/{{max}}',
+      heldHint: 'Тапни кубик, чтобы оставить',
+      endTurnBtn: '✓ Завершить ход',
+
       shakeBtn: '📳 Трясти',
       suggestTitle: 'Варианты для активного игрока',
       suggestPlayer: 'Игроку',
@@ -655,20 +667,37 @@
   // ---- Virtual 3D dice roller (CSS 3D + vanilla JS) ----
   var DICE = (function () {
     var tray = document.getElementById('diceTray');
+    var diceMeta = document.getElementById('diceMeta');
+    var rollCountEl = document.getElementById('rollCount');
+    var heldHintEl = document.getElementById('heldHint');
     var resultDice = document.getElementById('resultDice');
     var suggestions = document.getElementById('suggestions');
     var rollResult = document.getElementById('rollResult');
     var rollBtn = document.getElementById('rollBtn');
     var shakeBtn = document.getElementById('shakeBtn');
+    var endTurnBtn = document.getElementById('endTurnBtn');
 
     var DICE_COUNT = 5;
-    var FACE = { // rotateX, rotateY to bring face to front
+    var MAX_ROLLS = 3;
+    var FACE = {
       1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, -180]
     };
 
-    function createDie() {
+    var turnState = null;
+
+    function resetTurn() {
+      turnState = {
+        currentRoll: 0,
+        values: [0, 0, 0, 0, 0],
+        held: [false, false, false, false, false]
+      };
+      updateMeta();
+    }
+
+    function createDie(idx) {
       var s = document.createElement('div');
       s.className = 'die-scene';
+      s.setAttribute('data-idx', idx);
       var c = document.createElement('div');
       c.className = 'die';
       [1, 2, 3, 4, 5, 6].forEach(function (n) {
@@ -678,6 +707,8 @@
         c.appendChild(f);
       });
       s.appendChild(c);
+      s.addEventListener('click', function (e) { toggleHold(idx); });
+      s.addEventListener('touchstart', function (e) { e.preventDefault(); toggleHold(idx); });
       return { scene: s, cube: c };
     }
 
@@ -685,16 +716,11 @@
       if (!tray) return;
       tray.innerHTML = '';
       for (var i = 0; i < DICE_COUNT; i++) {
-        var d = createDie();
+        var d = createDie(i);
         tray.appendChild(d.scene);
       }
-    }
-
-    function createResultPip(n) {
-      var el = document.createElement('span');
-      el.className = 'pip-result p' + n;
-      el.textContent = n;
-      return el;
+      if (!turnState) resetTurn();
+      applyHeldVisuals();
     }
 
     function randomFace() { return 1 + Math.floor(Math.random() * 6); }
@@ -742,58 +768,72 @@
       return res;
     }
 
-    var isRolling = false;
-    var rollTimer = null;
-    var finalHand = [];
-    var cubes = [];
-
-    function startRolling() {
-      if (isRolling || !tray) return;
-      isRolling = true;
-      if (rollResult) rollResult.classList.add('hidden');
-      if (suggestions) suggestions.innerHTML = '';
-      if (rollBtn) rollBtn.classList.add('rolling');
-      cubes = Array.prototype.slice.call(tray.querySelectorAll('.die'));
-      cubes.forEach(function (cube) {
-        cube.classList.add('rolling');
-        cube.style.transition = 'transform 0.18s linear';
-      });
-      if (navigator.vibrate) navigator.vibrate(40);
-      rollTimer = setInterval(function () {
-        cubes.forEach(function (cube) {
-          var rx = Math.floor(Math.random() * 720);
-          var ry = Math.floor(Math.random() * 720);
-          cube.style.transform = 'rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
-        });
-        if (navigator.vibrate) navigator.vibrate(20);
-      }, 180);
+    function updateMeta() {
+      if (!rollCountEl || !heldHintEl) return;
+      rollCountEl.textContent = t('rollCount', { n: turnState ? turnState.currentRoll : 0, max: MAX_ROLLS });
+      heldHintEl.textContent = t('heldHint');
     }
 
-    function stopRolling() {
-      if (!isRolling) return;
-      clearInterval(rollTimer);
-      finalHand = [];
-      cubes.forEach(function (cube) {
-        cube.classList.remove('rolling');
-        var v = randomFace();
-        finalHand.push(v);
+    function applyHeldVisuals() {
+      if (!tray || !turnState) return;
+      var scenes = tray.querySelectorAll('.die-scene');
+      turnState.held.forEach(function (held, i) {
+        scenes[i].classList.toggle('held', held);
+      });
+    }
+
+    function toggleHold(idx) {
+      if (!turnState || turnState.currentRoll === 0) return;
+      turnState.held[idx] = !turnState.held[idx];
+      applyHeldVisuals();
+    }
+
+    function endTurn() {
+      if (!turnState) return;
+      if (turnState.currentRoll === 0) return;
+      resetTurn();
+      if (rollResult) rollResult.classList.add('hidden');
+      if (suggestions) suggestions.innerHTML = '';
+      if (isMobile() && state) {
+        state.mobileIdx = (state.mobileIdx + 1) % state.players.length;
+        render();
+      }
+      updateMeta();
+    }
+
+    function startRolling() {
+      if (!tray || !turnState) return;
+      if (turnState.currentRoll >= MAX_ROLLS) {
+        if (navigator.vibrate) navigator.vibrate(30);
+        return;
+      }
+      turnState.currentRoll++;
+      updateMeta();
+      if (rollResult) rollResult.classList.add('hidden');
+      if (suggestions) suggestions.innerHTML = '';
+      if (navigator.vibrate) navigator.vibrate(30);
+
+      var cubes = Array.prototype.slice.call(tray.querySelectorAll('.die'));
+      cubes.forEach(function (cube, i) {
+        if (turnState.held[i]) return;
+        turnState.values[i] = randomFace();
+        var v = turnState.values[i];
         var view = FACE[v];
         var x = view[0] + 360 * (3 + Math.floor(Math.random() * 2));
         var y = view[1] + 360 * (3 + Math.floor(Math.random() * 2));
         cube.style.transition = 'transform 0.85s cubic-bezier(0.18, 0.9, 0.32, 1.05)';
         cube.style.transform = 'rotateX(' + x + 'deg) rotateY(' + y + 'deg)';
       });
-      if (rollBtn) rollBtn.classList.remove('rolling');
+
       setTimeout(function () {
-        isRolling = false;
-        showResult(finalHand);
+        showResult(turnState.values);
       }, 900);
     }
 
     function showResult(hand) {
       if (!resultDice) return;
       resultDice.innerHTML = '';
-      hand.forEach(function (v) { resultDice.appendChild(createResultPip(v)); });
+      hand.forEach(function (v, i) { resultDice.appendChild(createResultPip(v, i)); });
       if (rollResult) rollResult.classList.remove('hidden');
       var opts = analyze(hand).filter(function (o) { return o.value > 0; }).sort(function (a, b) { return b.value - a.value; });
       if (!suggestions) return;
@@ -848,6 +888,13 @@
       });
     }
 
+    function createResultPip(n, idx) {
+      var el = document.createElement('span');
+      el.className = 'pip-result p' + n;
+      el.textContent = n;
+      return el;
+    }
+
     var lastAcc = { x: 0, y: 0, z: 0 };
     var lastShake = 0;
     var SHAKE_THRESHOLD = 10;
@@ -860,13 +907,13 @@
       var delta = Math.sqrt(dx * dx + dy * dy + dz * dz);
       if (delta > SHAKE_THRESHOLD) {
         lastShake = Date.now();
-        if (!isRolling) startRolling();
+        if (!turnState || turnState.currentRoll < MAX_ROLLS) startRolling();
       }
     }
 
     var shakeCheckTimer = setInterval(function () {
-      if (isRolling && Date.now() - lastShake > SHAKE_TIMEOUT) {
-        stopRolling();
+      if (turnState && turnState.currentRoll > 0 && turnState.currentRoll < MAX_ROLLS && Date.now() - lastShake > SHAKE_TIMEOUT && lastShake > 0) {
+        // shake ended before max rolls
       }
     }, 100);
 
@@ -892,19 +939,19 @@
       renderTray();
       if (rollBtn) {
         rollBtn.onmousedown = function (e) { e.preventDefault(); startRolling(); };
-        rollBtn.onmouseup = stopRolling;
-        rollBtn.onmouseleave = stopRolling;
+        rollBtn.onmouseup = null;
+        rollBtn.onmouseleave = null;
         rollBtn.ontouchstart = function (e) { e.preventDefault(); startRolling(); };
-        rollBtn.ontouchend = stopRolling;
-        rollBtn.ontouchcancel = stopRolling;
+        rollBtn.ontouchend = null;
+        rollBtn.ontouchcancel = null;
       }
       if (shakeBtn) shakeBtn.onclick = requestShake;
+      if (endTurnBtn) endTurnBtn.onclick = endTurn;
     }
 
-    window.DICE = { bind: bind, start: startRolling, stop: stopRolling, test: function(h){ return analyze(h).filter(function(x){return x.value>0;});} };
+    window.DICE = { bind: bind, start: startRolling, stop: null, test: function(h){ return analyze(h).filter(function(x){return x.value>0;});} };
     return window.DICE;
   })();
-
   // bind dice after creating game so tray exists; also bind once on init
   var originalOpenGame = openGame;
   openGame = function (st) { originalOpenGame(st); DICE.bind(); };

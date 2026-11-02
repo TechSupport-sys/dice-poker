@@ -46,9 +46,14 @@
     <div id="playerTabs" class="player-tabs hidden"></div>
     <div class="dice-stage" id="diceStage">
       <div class="dice-tray" id="diceTray"></div>
+      <div class="dice-meta" id="diceMeta">
+        <span class="roll-count" id="rollCount"></span>
+        <span class="held-hint" id="heldHint" data-i18n="heldHint">Tap dice to hold</span>
+      </div>
       <div class="roll-actions">
         <button class="primary roll-btn" id="rollBtn" data-i18n="rollBtn">🎲 Roll dice</button>
         <button class="ghost" id="shakeBtn" data-i18n="shakeBtn">📳 Shake to roll</button>
+        <button class="ghost" id="endTurnBtn" data-i18n="endTurnBtn">✓ End turn</button>
       </div>
       <div class="roll-result hidden" id="rollResult">
         <div class="result-dice" id="resultDice"></div>
@@ -67,6 +72,6 @@
   </footer>
 </div>
 
-<script src="./score.js?v=3"></script>
+<script src="./score.js?v=4"></script>
 </body>
 </html>
