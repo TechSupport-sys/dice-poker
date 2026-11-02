@@ -1036,7 +1036,8 @@
       }
 
       var zeroRows = GAME_CATEGORIES.filter(function (row) {
-        return state.scores[row.key] && state.scores[row.key][selectedIdx] === '';
+        return state.scores[row.key] && state.scores[row.key][selectedIdx] === '' &&
+          !opts.some(function (option) { return option.key === row.key; });
       });
       if (zeroRows.length) {
         var zeroToggle = document.createElement('button');
