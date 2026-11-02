@@ -476,7 +476,6 @@
         '<span class="player-name">' + n + '</span>' +
         '<span class="player-meta ' + rankCls + '">' +
           '<span class="ph-rank">' + c.rank[i] + '</span>' +
-          '<span class="ph-total">' + c.grand[i] + '</span>' +
         '</span>' +
       '</div>';
       hr.appendChild(th);
