@@ -779,6 +779,8 @@
 
     var DICE_COUNT = 5;
     var MAX_ROLLS = 3;
+    var SORT_DURATION = 520;
+    var SORT_STAGGER = 42;
     var FACE = {
       1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, -180]
     };
@@ -801,6 +803,15 @@
         for (var i = 0; i < cubes.length; i++) {
           cubes[i].style.transition = 'transform 0.35s ease';
           cubes[i].style.transform = 'rotateX(-22deg) rotateY(-28deg)';
+        }
+        var scenes = tray.querySelectorAll('.die-scene');
+        for (var j = 0; j < scenes.length; j++) {
+          scenes[j].classList.remove('sorting');
+          scenes[j].style.zIndex = '';
+          ['transition', 'transform', 'transformOrigin'].forEach(function (name) { scenes[j].style[name] = ''; });
+          ['--sort-delay', '--sort-from-x', '--sort-from-y', '--sort-mid-x', '--sort-mid-y', '--sort-mid-z', '--sort-tilt-x', '--sort-tilt-y', '--sort-twist', '--sort-mid-tilt-x', '--sort-mid-tilt-y', '--sort-mid-twist', '--sort-held-y'].forEach(function (name) {
+            scenes[j].style.removeProperty(name);
+          });
         }
       }
       if (rollResult) rollResult.classList.add('hidden');
@@ -973,17 +984,24 @@
 
       setTimeout(function () {
         if (generation !== rollGeneration || turnState !== activeTurn) return;
-        sortTray();
+        var sortingDuration = sortTray(generation);
         showResult(activeTurn.values);
-        rolling = false;
-        if (rollBtn) rollBtn.disabled = activeTurn.currentRoll >= MAX_ROLLS;
+        function finishRoll() {
+          if (generation !== rollGeneration || turnState !== activeTurn) return;
+          rolling = false;
+          if (rollBtn) rollBtn.disabled = activeTurn.currentRoll >= MAX_ROLLS;
+        }
+        if (sortingDuration) setTimeout(finishRoll, sortingDuration + 90);
+        else finishRoll();
       }, 900);
     }
 
-    function sortTray() {
-      if (!tray || !turnState) return;
+    function sortTray(generation) {
+      if (!tray || !turnState) return 0;
       var scenes = Array.prototype.slice.call(tray.querySelectorAll('.die-scene'));
-      if (scenes.length !== DICE_COUNT) return;
+      if (scenes.length !== DICE_COUNT) return 0;
+      var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var before = scenes.map(function (scene) { return scene.getBoundingClientRect(); });
       var order = scenes.map(function (_, i) { return i; });
       order.sort(function (a, b) { return turnState.values[a] - turnState.values[b]; });
       var sortedValues = order.map(function (i) { return turnState.values[i]; });
@@ -996,6 +1014,46 @@
         tray.appendChild(scene);
       });
       applyHeldVisuals();
+      if (reducedMotion) return 0;
+
+      order.forEach(function (oldIndex, newIndex) {
+        var scene = scenes[oldIndex];
+        var first = before[oldIndex];
+        var last = scene.getBoundingClientRect();
+        var dx = first.left - last.left;
+        var dy = first.top - last.top;
+        var delay = newIndex * SORT_STAGGER;
+        var direction = newIndex === oldIndex ? (newIndex % 2 ? 1 : -1) : Math.sign(newIndex - oldIndex);
+        var tilt = direction * 9;
+        var twist = direction * 7;
+        var lift = 34 + (newIndex % 2) * 12;
+        scene.classList.remove('sorting');
+        scene.style.zIndex = String(20 + newIndex);
+        scene.style.setProperty('--sort-delay', delay + 'ms');
+        scene.style.setProperty('--sort-from-x', dx + 'px');
+        scene.style.setProperty('--sort-from-y', dy + 'px');
+        scene.style.setProperty('--sort-mid-x', (dx * .5) + 'px');
+        scene.style.setProperty('--sort-mid-y', (dy * .5 - lift) + 'px');
+        scene.style.setProperty('--sort-mid-z', (42 + (newIndex % 2) * 14) + 'px');
+        scene.style.setProperty('--sort-tilt-x', tilt + 'deg');
+        scene.style.setProperty('--sort-tilt-y', (-tilt) + 'deg');
+        scene.style.setProperty('--sort-twist', twist + 'deg');
+        scene.style.setProperty('--sort-mid-tilt-x', (-tilt * .55) + 'deg');
+        scene.style.setProperty('--sort-mid-tilt-y', (tilt * .55) + 'deg');
+        scene.style.setProperty('--sort-mid-twist', (twist * .45) + 'deg');
+        scene.style.setProperty('--sort-held-y', scene.classList.contains('held') ? '-10px' : '0px');
+        void scene.offsetWidth;
+        scene.classList.add('sorting');
+        setTimeout(function () {
+          if (generation !== rollGeneration) return;
+          scene.classList.remove('sorting');
+          scene.style.zIndex = '';
+          ['--sort-delay', '--sort-from-x', '--sort-from-y', '--sort-mid-x', '--sort-mid-y', '--sort-mid-z', '--sort-tilt-x', '--sort-tilt-y', '--sort-twist', '--sort-mid-tilt-x', '--sort-mid-tilt-y', '--sort-mid-twist', '--sort-held-y'].forEach(function (name) {
+            scene.style.removeProperty(name);
+          });
+        }, delay + SORT_DURATION + 70);
+      });
+      return SORT_DURATION + (DICE_COUNT - 1) * SORT_STAGGER;
     }
 
     function showResult(hand) {
