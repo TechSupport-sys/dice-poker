@@ -154,15 +154,53 @@ td.calc.rank{color:var(--accent);font-weight:800}
 @keyframes dieWobble{0%{transform:rotateX(-22deg) rotateY(-28deg)}50%{transform:rotateX(-12deg) rotateY(-18deg)}100%{transform:rotateX(-32deg) rotateY(-38deg)}}
 .face{position:absolute;width:64px;height:64px;background:linear-gradient(145deg,var(--txt2),#e2e8f0);border:2px solid #94a3b8;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 10px rgba(0,0,0,.1)}
 .face::before{content:'';display:block;position:absolute}
-/* dots: centered via transform */
-.face::before{content:'';display:block;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
-.f1::before{width:14px;height:14px;background:#0f172a;border-radius:50%}
-.f2::before{width:12px;height:12px;background:#0f172a;border-radius:50%;box-shadow:18px -18px 0 #0f172a,-18px 18px 0 #0f172a}
-.f3::before{width:11px;height:11px;background:#0f172a;border-radius:50%;box-shadow:18px -18px 0 #0f172a,-18px 18px 0 #0f172a}
-.f4::before{width:11px;height:11px;background:#0f172a;border-radius:50%;box-shadow:18px 18px 0 #0f172a,18px -18px 0 #0f172a,-18px 18px 0 #0f172a,-18px -18px 0 #0f172a}
-.f5::before{width:11px;height:11px;background:#0f172a;border-radius:50%;box-shadow:0 0 0 0 #0f172a,18px 18px 0 #0f172a,18px -18px 0 #0f172a,-18px 18px 0 #0f172a,-18px -18px 0 #0f172a}
-.f5::after{content:'';position:absolute;left:50%;top:50%;width:11px;height:11px;background:#0f172a;border-radius:50%;transform:translate(-50%,-50%)}
-.f6::before{width:11px;height:11px;background:#0f172a;border-radius:50%;box-shadow:18px 0 0 #0f172a,-18px 0 0 #0f172a,18px 18px 0 #0f172a,18px -18px 0 #0f172a,-18px 18px 0 #0f172a,-18px -18px 0 #0f172a}/* face positions */
+/* dots via background radial gradients (always centered, no box-shadow misalignment) */
+.face{
+  background:var(--txt2);
+  display:flex;align-items:center;justify-content:center;
+}
+.face::before{content:'';display:none}
+.f1{background:radial-gradient(circle, #0f172a 28%, transparent 30%)}
+.f2{
+  background:
+    radial-gradient(circle at 70% 30%, #0f172a 18%, transparent 20%),
+    radial-gradient(circle at 30% 70%, #0f172a 18%, transparent 20%),
+    var(--txt2)
+}
+.f3{
+  background:
+    radial-gradient(circle at 72% 28%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 50% 50%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 28% 72%, #0f172a 16%, transparent 18%),
+    var(--txt2)
+}
+.f4{
+  background:
+    radial-gradient(circle at 72% 28%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 28% 28%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 72% 72%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 28% 72%, #0f172a 16%, transparent 18%),
+    var(--txt2)
+}
+.f5{
+  background:
+    radial-gradient(circle at 72% 28%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 28% 28%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 50% 50%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 72% 72%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 28% 72%, #0f172a 16%, transparent 18%),
+    var(--txt2)
+}
+.f6{
+  background:
+    radial-gradient(circle at 72% 25%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 28% 25%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 72% 50%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 28% 50%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 72% 75%, #0f172a 16%, transparent 18%),
+    radial-gradient(circle at 28% 75%, #0f172a 16%, transparent 18%),
+    var(--txt2)
+}/* face positions */
 .face.f1{transform:translateZ(32px)}
 .face.f2{transform:rotateY(90deg) translateZ(32px)}
 .face.f3{transform:rotateX(90deg) translateZ(32px)}
