@@ -644,6 +644,7 @@
     els.setup.classList.add('hidden');
     els.game.classList.remove('hidden');
     lastAction = null;
+    lastScored = null;
     if (els.undoBtn) els.undoBtn.disabled = true;
     render();
   }
@@ -681,6 +682,13 @@
   $('newGameBtn').addEventListener('click', function () {
     if (!confirm(t('confirmNew'))) return;
     state = null;
+    lastAction = null;
+    lastScored = null;
+    if (window.DICE) window.DICE.reset();
+    if (els.undoBtn) els.undoBtn.disabled = true;
+    els.table.innerHTML = '';
+    if (els.leaderboard) els.leaderboard.innerHTML = '';
+    if (els.tabs) els.tabs.innerHTML = '';
     els.setup.classList.remove('hidden');
     els.game.classList.add('hidden');
     nameFields();
