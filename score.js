@@ -951,9 +951,15 @@
     var SHAKE_COOLDOWN = 1200;
     var shakeEnabled = false;
 
+    function validMotionVector(value) {
+      return value && Number.isFinite(value.x) && Number.isFinite(value.y) && Number.isFinite(value.z);
+    }
+
     function onMotion(e) {
-      var acc = e.acceleration || e.accelerationIncludingGravity;
-      if (!acc || typeof acc.x !== 'number' || typeof acc.y !== 'number' || typeof acc.z !== 'number') return;
+      // Some browsers expose acceleration as an object with null axes while
+      // accelerationIncludingGravity contains the actual sensor values.
+      var acc = validMotionVector(e.acceleration) ? e.acceleration : e.accelerationIncludingGravity;
+      if (!validMotionVector(acc)) return;
       var now = Date.now();
       var current = { x: acc.x, y: acc.y, z: acc.z };
       if (!lastAcc) { lastAcc = current; return; }
