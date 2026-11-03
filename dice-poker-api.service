@@ -1,0 +1,16 @@
+[Unit]
+Description=Dice Poker leaderboard API
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/dice-poker
+ExecStart=/usr/bin/python3 /var/www/dice-poker/api.py
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

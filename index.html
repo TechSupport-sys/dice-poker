@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
 <title>Dice Poker — Scorecard</title>
-<link rel="stylesheet" href="./styles.css?v=32">
+<link rel="stylesheet" href="./styles.css?v=34">
 </head>
 <body>
 <div class="app">
@@ -33,6 +33,19 @@
       <button class="primary" id="createBtn" data-i18n="createBtn">Create game</button>
     </div>
     <p class="hint" data-i18n="hint">Play → screenshot. Scores are not saved.</p>
+    <div class="leaderboard-panel" id="leaderboardPanel">
+      <div class="leaderboard-head">
+        <h3 data-i18n="leaderboardTitle">Top players</h3>
+        <div class="segmented" id="leaderboardPeriod">
+          <button class="seg-btn active" data-period="all" data-i18n="leaderboardAll">All time</button>
+          <button class="seg-btn" data-period="month" data-i18n="leaderboardMonth">Month</button>
+          <button class="seg-btn" data-period="day" data-i18n="leaderboardDay">Day</button>
+        </div>
+      </div>
+      <div class="leaderboard-body" id="leaderboardBody">
+        <p class="leaderboard-empty" data-i18n="leaderboardEmpty">No entries yet.</p>
+      </div>
+    </div>
   </section>
 
   <section class="panel hidden" id="game">

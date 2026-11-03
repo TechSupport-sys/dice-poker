@@ -15,6 +15,11 @@
       undoBtn: '↩ Undo',
       newGameBtn: 'New',
       statusDone: 'Tap screenshot when finished',
+      leaderboardTitle: 'Top players',
+      leaderboardAll: 'All time',
+      leaderboardMonth: 'Month',
+      leaderboardDay: 'Day',
+      leaderboardEmpty: 'No entries yet.',
       rulesSummary: 'How to score combinations',
       confirmNew: 'Reset the table and start a new game?',
       gameOverTitle: 'Game over!',
@@ -87,6 +92,11 @@
       undoBtn: '↩ Скасувати',
       newGameBtn: 'Нова',
       statusDone: 'Тапни скріншот, коли фініш',
+      leaderboardTitle: 'Топ гравців',
+      leaderboardAll: 'Весь час',
+      leaderboardMonth: 'Місяць',
+      leaderboardDay: 'День',
+      leaderboardEmpty: 'Поки що немає записів.',
       rulesSummary: 'Як оцінювати комбінації',
       confirmNew: 'Скинути таблицю і почати нову гру?',
       gameOverTitle: 'Гру завершено!',
@@ -162,6 +172,11 @@
       undoBtn: '↩ Отмена',
       newGameBtn: 'Новая',
       statusDone: 'Тапни скриншот, когда финиш',
+      leaderboardTitle: 'Топ игроков',
+      leaderboardAll: 'Всё время',
+      leaderboardMonth: 'Месяц',
+      leaderboardDay: 'День',
+      leaderboardEmpty: 'Пока нет записей.',
       rulesSummary: 'Как оценивать комбинации',
       confirmNew: 'Сбросить таблицу и начать новую игру?',
       gameOverTitle: 'Игра окончена!',
@@ -250,7 +265,8 @@
     foot: $('netInfo'), undoBtn: $('undoBtn'), langSelect: $('langSelect'), rulesList: $('rulesList'),
     diceMode: $('diceMode'), diceStage: $('diceStage'), manualDice: $('manualDice'),
     manualRow: $('manualRow'), manualSuggestBtn: $('manualSuggestBtn'),
-    gameOver: $('gameOver'), gameOverMessage: $('gameOverMessage'), confettiLayer: $('confettiLayer'), gameOverClose: $('gameOverClose')
+    gameOver: $('gameOver'), gameOverMessage: $('gameOverMessage'), confettiLayer: $('confettiLayer'), gameOverClose: $('gameOverClose'),
+    leaderboardPanel: $('leaderboardPanel'), leaderboardPeriod: $('leaderboardPeriod'), leaderboardBody: $('leaderboardBody')
   };
   if (!els.table || !els.undoBtn) return;
 
@@ -305,6 +321,7 @@
         sel.appendChild(o);
       });
     } else if (sel) sel.value = lang;
+    loadLeaderboard();
   }
 
   for (var i = 2; i <= 12; i++) {
@@ -389,11 +406,82 @@
     gameOverShown = true;
     if (els.gameOver) els.gameOver.classList.remove('hidden');
     if (els.gameOverClose) els.gameOverClose.focus();
+    submitLeaderboard(winners.length === 1 ? winners[0] : winners.join(', '), high);
     return true;
   }
 
   function closeGameComplete() {
     if (els.gameOver) els.gameOver.classList.add('hidden');
+  }
+
+  var leaderboardPeriod = 'all';
+  var lastLeaderboardLoad = 0;
+
+  function submitLeaderboard(name, score) {
+    try {
+      fetch('./api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, score: score })
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function loadLeaderboard() {
+    if (!els.leaderboardBody) return;
+    fetch('./api/leaderboard?period=' + encodeURIComponent(leaderboardPeriod), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        renderLeaderboard(data.entries || []);
+      })
+      .catch(function () {
+        renderLeaderboard([]);
+      });
+  }
+
+  function renderLeaderboard(entries) {
+    if (!els.leaderboardBody) return;
+    els.leaderboardBody.innerHTML = '';
+    if (!entries || !entries.length) {
+      var empty = document.createElement('p');
+      empty.className = 'leaderboard-empty';
+      empty.textContent = t('leaderboardEmpty');
+      els.leaderboardBody.appendChild(empty);
+      return;
+    }
+    var ol = document.createElement('ol');
+    ol.className = 'leaderboard-list';
+    entries.forEach(function (e, i) {
+      var li = document.createElement('li');
+      li.innerHTML = '<span class="lb-rank">' + (i + 1) + '</span>' +
+        '<span class="lb-name">' + escapeHtml(e.name) + '</span>' +
+        '<span class="lb-score">' + e.score + '</span>';
+      ol.appendChild(li);
+    });
+    els.leaderboardBody.appendChild(ol);
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function refreshLeaderboardSoon() {
+    var now = Date.now();
+    if (now - lastLeaderboardLoad < 5000) return;
+    lastLeaderboardLoad = now;
+    setTimeout(loadLeaderboard, 300);
+  }
+
+  if (els.leaderboardPeriod) {
+    els.leaderboardPeriod.addEventListener('click', function (e) {
+      var btn = e.target.closest('.seg-btn[data-period]');
+      if (!btn) return;
+      leaderboardPeriod = btn.dataset.period;
+      Array.prototype.forEach.call(els.leaderboardPeriod.querySelectorAll('.seg-btn'), function (b) {
+        b.classList.toggle('active', b.dataset.period === leaderboardPeriod);
+      });
+      loadLeaderboard();
+    });
   }
 
   function resetGameComplete() {
@@ -659,7 +747,7 @@
     lastMobile = mobile;
     els.title.textContent = t('gameTitle', { n: state.players.length, cat: GAME_CATEGORY_COUNT });
     renderTabs(c);
-    renderLeaderboard(c);
+    renderInGameLeaderboard(c);
     if (els.leaderboard) els.leaderboard.style.display = mobile ? 'none' : '';
   }
 
@@ -685,6 +773,10 @@
       wrap.appendChild(chip);
     });
     els.leaderboard.appendChild(wrap);
+  }
+
+  function renderInGameLeaderboard(c) {
+    renderLeaderboard(c);
   }
 
   function undo() {
@@ -756,6 +848,7 @@
     els.game.classList.add('hidden');
     nameFields();
     setStatus('');
+    loadLeaderboard();
   });
   if (els.undoBtn) els.undoBtn.addEventListener('click', undo);
   if (els.langSelect) els.langSelect.addEventListener('change', function () { setLang(els.langSelect.value); });
@@ -1238,4 +1331,5 @@
   renderLabels();
   nameFields();
   setStatus('');
+  loadLeaderboard();
 })();
