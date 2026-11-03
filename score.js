@@ -428,19 +428,23 @@
   }
 
   function loadLeaderboard() {
-    if (!els.leaderboardBody) return;
-    fetch('./api/leaderboard?period=' + encodeURIComponent(leaderboardPeriod), { cache: 'no-store' })
+    if (!els.leaderboardBody) { console.log('no leaderboardBody'); return; }
+    var url = './api/leaderboard?period=' + encodeURIComponent(leaderboardPeriod);
+    fetch(url, { cache: 'no-store' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
+        console.log('leaderboard data', data);
         renderLeaderboard(data.entries || []);
       })
-      .catch(function () {
+      .catch(function (err) {
+        console.error('leaderboard load failed', err);
         renderLeaderboard([]);
       });
   }
 
   function renderLeaderboard(entries) {
-    if (!els.leaderboardBody) return;
+    if (!els.leaderboardBody) { console.log('render no body'); return; }
+    console.log('renderLeaderboard', entries.length);
     els.leaderboardBody.innerHTML = '';
     if (!entries || !entries.length) {
       var empty = document.createElement('p');
