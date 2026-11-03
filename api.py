@@ -80,7 +80,7 @@ def rate_limit_ok(db, ip):
         (ip,)
     ).fetchone()
     if row and row['submitted_at']:
-        last = datetime.fromisoformat(row['submitted_at'].replace('Z', '+00:00'))
+        last = datetime.fromisoformat(row['submitted_at'].replace('Z', '+00:00')).replace(tzinfo=None)
         if datetime.utcnow() - last < timedelta(seconds=10):
             return False
     return True
