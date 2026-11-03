@@ -847,7 +847,11 @@
       applyHeldVisuals();
     }
 
-    function randomFace() { return 1 + Math.floor(Math.random() * 6); }
+    function randomFace() {
+      var buf = new Uint32Array(1);
+      crypto.getRandomValues(buf);
+      return 1 + Math.floor(buf[0] / 4294967296 * 6);
+    }
 
     function count(hand) {
       var c = {};
