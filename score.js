@@ -454,8 +454,13 @@
     ol.className = 'leaderboard-list';
     entries.forEach(function (e, i) {
       var li = document.createElement('li');
+      var when = e.playedAt ? new Date(e.playedAt) : null;
+      var whenText = when ? when.toLocaleString(lang === 'uk' ? 'uk-UA' : lang === 'ru' ? 'ru-RU' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
       li.innerHTML = '<span class="lb-rank">' + (i + 1) + '</span>' +
-        '<span class="lb-name">' + escapeHtml(e.name) + '</span>' +
+        '<span class="lb-main">' +
+          '<span class="lb-name">' + escapeHtml(e.name) + '</span>' +
+          (whenText ? '<span class="lb-when">' + whenText + '</span>' : '') +
+        '</span>' +
         '<span class="lb-score">' + e.score + '</span>';
       ol.appendChild(li);
     });
