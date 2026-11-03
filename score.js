@@ -252,7 +252,7 @@
     manualRow: $('manualRow'), manualSuggestBtn: $('manualSuggestBtn'),
     gameOver: $('gameOver'), gameOverMessage: $('gameOverMessage'), confettiLayer: $('confettiLayer'), gameOverClose: $('gameOverClose')
   };
-  if (!els.table) return;
+  if (!els.table || !els.undoBtn) return;
 
   var state = null;
   var lastAction = null;
@@ -1139,8 +1139,10 @@
 
     var lastAcc = null;
     var lastShake = 0;
-    var SHAKE_THRESHOLD = 3.5;
+    var SHAKE_THRESHOLD = 6.5;
     var SHAKE_COOLDOWN = 1200;
+    var SHAKE_MIN_SPAN = 140;
+    var shakeStartedAt = 0;
     var shakeEnabled = false;
 
     function validMotionVector(value) {
@@ -1158,10 +1160,13 @@
       var dx = current.x - lastAcc.x, dy = current.y - lastAcc.y, dz = current.z - lastAcc.z;
       lastAcc = current;
       var delta = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      if (delta >= SHAKE_THRESHOLD && now - lastShake >= SHAKE_COOLDOWN) {
-        lastShake = now;
-        if (turnState && turnState.currentRoll < MAX_ROLLS) startRolling();
-      }
+      if (delta < SHAKE_THRESHOLD) { shakeStartedAt = 0; return; }
+      if (!shakeStartedAt) shakeStartedAt = now;
+      if (now - lastShake < SHAKE_COOLDOWN) return;
+      if (now - shakeStartedAt < SHAKE_MIN_SPAN) return;
+      lastShake = now;
+      shakeStartedAt = 0;
+      if (turnState && turnState.currentRoll < MAX_ROLLS) startRolling();
     }
 
     function enableShake() {
