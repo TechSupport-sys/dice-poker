@@ -428,23 +428,20 @@
   }
 
   function loadLeaderboard() {
-    if (!els.leaderboardBody) { console.log('no leaderboardBody'); return; }
+    if (!els.leaderboardBody) return;
     var url = './api/leaderboard?period=' + encodeURIComponent(leaderboardPeriod);
     fetch(url, { cache: 'no-store' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        console.log('leaderboard data', data);
         renderLeaderboard(data.entries || []);
       })
-      .catch(function (err) {
-        console.error('leaderboard load failed', err);
+      .catch(function () {
         renderLeaderboard([]);
       });
   }
 
   function renderLeaderboard(entries) {
-    if (!els.leaderboardBody) { console.log('render no body'); return; }
-    console.log('renderLeaderboard', entries.length);
+    if (!els.leaderboardBody) return;
     els.leaderboardBody.innerHTML = '';
     if (!entries || !entries.length) {
       var empty = document.createElement('p');
@@ -753,30 +750,6 @@
     renderTabs(c);
     renderInGameLeaderboard(c);
     if (els.leaderboard) els.leaderboard.style.display = mobile ? 'none' : '';
-  }
-
-  function renderLeaderboard(c) {
-    if (!els.leaderboard) return;
-    var pairs = state.players.map(function (n, i) { return { name: n, total: c.grand[i], rank: c.rank[i], filled: c.filled[i], idx: i }; });
-    els.leaderboard.innerHTML = '';
-    var wrap = document.createElement('div');
-    wrap.className = 'lb-list';
-    pairs.forEach(function (p) {
-      var chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'lb-chip' + (state.mobileIdx === p.idx ? ' active' : '');
-      chip.setAttribute('aria-pressed', state.mobileIdx === p.idx ? 'true' : 'false');
-      chip.addEventListener('click', function () {
-        state.mobileIdx = p.idx;
-        render();
-        if (window.DICE) window.DICE.refreshSuggestions();
-      });
-      var rank = p.rank === 1 ? '🥇' : p.rank === 2 ? '🥈' : p.rank === 3 ? '🥉' : '#' + p.rank;
-      var filled = t('filled', { f: p.filled, cat: GAME_CATEGORY_COUNT });
-      chip.innerHTML = '<span class="lb-rank">' + rank + '</span><span class="lb-name">' + p.name + '</span><span class="lb-total">' + p.total + '</span><span class="lb-filled">' + filled + '</span>';
-      wrap.appendChild(chip);
-    });
-    els.leaderboard.appendChild(wrap);
   }
 
   function renderInGameLeaderboard(c) {
