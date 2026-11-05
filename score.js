@@ -874,9 +874,9 @@
 
     var DICE_COUNT = 5;
     var MAX_ROLLS = 3;
-    var SORT_DURATION = 280;
-    var SORT_STAGGER = 24;
-    var ROLL_TRANSITION_MS = 680;
+    var SORT_DURATION = 240;
+    var SORT_STAGGER = 18;
+    var ROLL_TRANSITION_MS = 620;
     var FACE = {
       1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, -180]
     };
@@ -1049,7 +1049,7 @@
     }
 
     function toggleHold(idx) {
-      if (!turnState || turnState.currentRoll === 0 || turnState.currentRoll >= MAX_ROLLS || rolling) return;
+      if (!turnState || turnState.currentRoll === 0 || turnState.currentRoll >= MAX_ROLLS) return;
       turnState.held[idx] = !turnState.held[idx];
       applyHeldVisuals();
     }
