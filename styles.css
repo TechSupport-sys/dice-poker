@@ -244,6 +244,7 @@ td.score-just-entered .seg-btn.active,td.score-just-entered .pip.active,td.score
 .manual-die{width:54px;height:54px;border-radius:12px;border:1px solid var(--border);background:rgba(15,23,42,.55);color:var(--txt);font-size:20px;font-weight:800;text-align:center}
 .manual-die:focus{outline:none;border-color:var(--accent)}
 .roll-btn{font-size:16px;padding:14px 24px;border-radius:14px}
+.roll-btn:disabled{opacity:.45;filter:grayscale(.6);cursor:not-allowed}
 .roll-result{margin-top:14px;text-align:center}
 .result-dice{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
 .pip-result{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;background:#1e293b;border:1px solid var(--border);font-size:20px;font-weight:800;color:var(--txt)}
