@@ -874,9 +874,9 @@
 
     var DICE_COUNT = 5;
     var MAX_ROLLS = 3;
-    var SORT_DURATION = 240;
-    var SORT_STAGGER = 18;
-    var ROLL_TRANSITION_MS = 620;
+    var SORT_DURATION = 180;
+    var SORT_STAGGER = 10;
+    var ROLL_TRANSITION_MS = 480;
     var FACE = {
       1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, -180]
     };
@@ -1091,9 +1091,9 @@
           rolling = false;
           if (rollBtn) rollBtn.disabled = activeTurn.currentRoll >= MAX_ROLLS;
         }
-        if (sortingDuration) setTimeout(finishRoll, sortingDuration + 60);
+        if (sortingDuration) setTimeout(finishRoll, sortingDuration + 40);
         else finishRoll();
-      }, ROLL_TRANSITION_MS + 60);
+      }, ROLL_TRANSITION_MS + 40);
     }
 
     function sortTray(generation) {
@@ -1322,7 +1322,8 @@
       reset: resetTurn,
       setMode: setDiceMode,
       refreshSuggestions: function () { if (turnState && turnState.currentRoll > 0) showResult(turnState.values); },
-      test: function(h){ return analyze(h).filter(function(x){return x.value>0;}); }
+      test: function(h){ return analyze(h).filter(function(x){return x.value>0;}); },
+      getState: function () { return turnState ? { currentRoll: turnState.currentRoll, values: turnState.values.slice(), held: turnState.held.slice(), rolling: rolling } : null; }
     };
     return window.DICE;
   })();
