@@ -172,13 +172,13 @@ td.score-just-entered .seg-btn.active,td.score-just-entered .pip.active,td.score
 .dice-stage{margin:12px 0}
 .dice-tray{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;min-height:84px;padding:10px;perspective:900px;perspective-origin:center}
 .die-scene{--die-depth:28px;width:56px;height:56px;perspective:260px;transform-style:preserve-3d;cursor:pointer;transition:transform .15s;min-width:56px;min-height:56px;touch-action:manipulation;position:relative}
-.die-scene.sorting{z-index:12;animation:die-sort-flight 520ms cubic-bezier(.16,1,.3,1) var(--sort-delay,0ms) both;will-change:transform}
+.die-scene.sorting{z-index:12;animation:die-sort-flight 280ms cubic-bezier(.16,1,.3,1) var(--sort-delay,0ms) both;will-change:transform}
 @keyframes die-sort-flight{
   0%{transform:translate3d(var(--sort-from-x),var(--sort-from-y),0) scale(.82) rotateX(var(--sort-tilt-x)) rotateY(var(--sort-tilt-y)) rotateZ(var(--sort-twist))}
   52%{transform:translate3d(var(--sort-mid-x),var(--sort-mid-y),var(--sort-mid-z)) scale(1.12) rotateX(var(--sort-mid-tilt-x)) rotateY(var(--sort-mid-tilt-y)) rotateZ(var(--sort-mid-twist))}
   100%{transform:translate3d(0,var(--sort-held-y),0) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)}
 }
-.die-scene.sorting::before{content:"";position:absolute;inset:-11px;border-radius:20px;background:radial-gradient(ellipse,rgba(96,165,250,.52),rgba(99,102,241,.16) 48%,transparent 74%);opacity:0;animation:die-sort-glow 520ms ease-out var(--sort-delay,0ms) both;pointer-events:none}
+.die-scene.sorting::before{content:"";position:absolute;inset:-11px;border-radius:20px;background:radial-gradient(ellipse,rgba(96,165,250,.52),rgba(99,102,241,.16) 48%,transparent 74%);opacity:0;animation:die-sort-glow 280ms ease-out var(--sort-delay,0ms) both;pointer-events:none}
 @keyframes die-sort-glow{0%{opacity:0;transform:scale(.68)}38%{opacity:.78;transform:scale(1)}100%{opacity:0;transform:scale(1.45)}}
 .die-scene.held{transform:translateY(-10px)}
 .die-scene.held::after{content:'✓';position:absolute;top:-8px;right:-8px;width:22px;height:22px;background:var(--accent);color:#111;border-radius:50%;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.3);z-index:10;transform:translateZ(60px)}

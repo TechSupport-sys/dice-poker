@@ -874,8 +874,9 @@
 
     var DICE_COUNT = 5;
     var MAX_ROLLS = 3;
-    var SORT_DURATION = 520;
-    var SORT_STAGGER = 42;
+    var SORT_DURATION = 280;
+    var SORT_STAGGER = 24;
+    var ROLL_TRANSITION_MS = 680;
     var FACE = {
       1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, -180]
     };
@@ -1077,7 +1078,7 @@
         var view = FACE[v];
         var x = view[0] + 360 * (3 + Math.floor(Math.random() * 2));
         var y = view[1] + 360 * (3 + Math.floor(Math.random() * 2));
-        cube.style.transition = 'transform 0.85s cubic-bezier(0.18, 0.9, 0.32, 1.05)';
+        cube.style.transition = 'transform ' + (ROLL_TRANSITION_MS / 1000) + 's cubic-bezier(0.18, 0.9, 0.32, 1.05)';
         cube.style.transform = 'rotateX(' + x + 'deg) rotateY(' + y + 'deg)';
       });
 
@@ -1090,9 +1091,9 @@
           rolling = false;
           if (rollBtn) rollBtn.disabled = activeTurn.currentRoll >= MAX_ROLLS;
         }
-        if (sortingDuration) setTimeout(finishRoll, sortingDuration + 90);
+        if (sortingDuration) setTimeout(finishRoll, sortingDuration + 60);
         else finishRoll();
-      }, 900);
+      }, ROLL_TRANSITION_MS + 60);
     }
 
     function sortTray(generation) {
@@ -1321,8 +1322,7 @@
       reset: resetTurn,
       setMode: setDiceMode,
       refreshSuggestions: function () { if (turnState && turnState.currentRoll > 0) showResult(turnState.values); },
-      test: function(h){ return analyze(h).filter(function(x){return x.value>0;}); },
-      getState: function () { return turnState ? { currentRoll: turnState.currentRoll, values: turnState.values.slice(), held: turnState.held.slice() } : null; }
+      test: function(h){ return analyze(h).filter(function(x){return x.value>0;}); }
     };
     return window.DICE;
   })();
