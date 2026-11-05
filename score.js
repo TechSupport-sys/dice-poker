@@ -1321,7 +1321,8 @@
       reset: resetTurn,
       setMode: setDiceMode,
       refreshSuggestions: function () { if (turnState && turnState.currentRoll > 0) showResult(turnState.values); },
-      test: function(h){ return analyze(h).filter(function(x){return x.value>0;}); }
+      test: function(h){ return analyze(h).filter(function(x){return x.value>0;}); },
+      getState: function () { return turnState ? { currentRoll: turnState.currentRoll, values: turnState.values.slice(), held: turnState.held.slice() } : null; }
     };
     return window.DICE;
   })();
